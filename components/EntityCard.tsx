@@ -12,7 +12,7 @@ interface EntityCardProps {
   onUpdate: (data: Partial<Entity>) => void;
   onDelete: () => void;
   onStartLink: () => void;
-  canvasRef: React.RefObject<HTMLDivElement>;
+  canvasRef: React.RefObject<HTMLDivElement | null>;
   zoom?: number;
   useSnap?: boolean;
 }

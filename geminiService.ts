@@ -93,7 +93,12 @@ export const evaluateModel = async (data: ModelData): Promise<EvaluationResult> 
     }
   });
 
-  return JSON.parse(response.text.trim()) as EvaluationResult;
+  const jsonStr = response.text?.trim() || "{}";
+  try {
+    return JSON.parse(jsonStr) as EvaluationResult;
+  } catch (e) {
+    throw new Error("Falha ao processar a avaliação da AI.");
+  }
 };
 
 export const generateSQL = async (data: ModelData, dbType: DatabaseType = 'mysql'): Promise<string> => {

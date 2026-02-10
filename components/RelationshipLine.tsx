@@ -12,7 +12,7 @@ interface RelationshipLineProps {
   isExporting: boolean;
   onUpdate: (id: string, data: Partial<Relationship>) => void;
   onDelete: (id: string) => void;
-  canvasRef: React.RefObject<HTMLDivElement>;
+  canvasRef: React.RefObject<HTMLDivElement | null>;
 }
 
 const RelationshipLine: React.FC<RelationshipLineProps> = ({ 
