@@ -15,20 +15,23 @@ export const generateScenario = async (difficulty: Difficulty): Promise<string> 
   };
 
   const prompt = `
-    Aja como um professor de banco de dados experiente. Crie um "Estudo de Caso" inédito para um exercício de modelagem de dados.
+    Aja como um professor de banco de dados experiente e um excelente redator. 
+    Crie um "Estudo de Caso" inédito para um exercício de modelagem de dados.
     Nível de Dificuldade: ${difficulty.toUpperCase()} (${descriptions[difficulty]})
     
-    REGRAS DE CONTEÚDO:
+    REGRAS DE CONTEÚDO E IDIOMA:
     1. Escreva o texto TOTALMENTE EM PROSA (texto corrido), organizado em parágrafos narrativos.
-    2. NÃO use listas, tópicos, hífens, asteriscos ou numeração para descrever requisitos.
-    3. O texto deve descrever o funcionamento cotidiano de uma organização e suas necessidades de informação de forma fluida.
-    4. As regras de negócio devem estar imersas na narrativa para que o aluno precise interpretar o texto e identificar por conta própria as entidades, seus atributos essenciais e as cardinalidades dos relacionamentos.
-    5. Evite nomes óbvios de tabelas; foque em descrever os processos (ex: "precisamos saber quem vendeu o quê e para quem" em vez de "a tabela venda relaciona funcionário e cliente").
+    2. O texto DEVE seguir rigorosamente a norma culta da língua portuguesa brasileira (pt-BR).
+    3. GARANTA que toda a acentuação, ortografia e pontuação estejam perfeitas.
+    4. NÃO use listas, tópicos, hífens, asteriscos ou numeração para descrever requisitos.
+    5. O texto deve descrever o funcionamento cotidiano de uma organização e suas necessidades de informação de forma fluida.
+    6. As regras de negócio devem estar imersas na narrativa para que o aluno precise interpretar o texto e identificar por conta própria as entidades, seus atributos essenciais e as cardinalidades dos relacionamentos.
+    7. Evite nomes óbvios de tabelas; foque em descrever os processos.
 
     REGRAS DE FORMATAÇÃO OBRIGATÓRIAS:
     1. NÃO use NENHUMA formatação Markdown (negrito, itálico, hashtags para títulos).
     2. O resultado deve ser TEXTO PURO (plain text).
-    3. Responda APENAS com o texto do cenário, sem introduções ou conclusões do tipo "Aqui está seu cenário".
+    3. Responda APENAS com o texto do cenário, sem introduções ou conclusões.
   `;
 
   const response = await ai.models.generateContent({
@@ -62,7 +65,7 @@ export const evaluateModel = async (data: ModelData): Promise<EvaluationResult> 
     Avalie se o modelo do aluno reflete corretamente as regras de negócio do estudo de caso.
     Considere se o aluno identificou corretamente as Chaves Primárias (PK).
     Atribua uma nota de 0 a 100.
-    Forneça feedback construtivo em português.
+    Forneça feedback construtivo em português (pt-BR) com acentuação correta.
   `;
 
   const response = await ai.models.generateContent({
@@ -119,7 +122,7 @@ export const generateSQL = async (data: ModelData, dbType: DatabaseType = 'mysql
     
     ${dbType === 'mysql' ? mysqlRules : postgresRules}
     
-    6. Inclua comentários explicativos no código.
+    6. Inclua comentários explicativos no código em português (pt-BR) com acentuação correta.
     
     DADOS DO MODELO:
     ${JSON.stringify({
@@ -150,7 +153,7 @@ export const getGuidedHint = async (data: ModelData): Promise<string> => {
 
     Não dê a resposta completa. Dê uma DICA CURTA (máximo 2 frases) para ajudar o aluno a dar o próximo passo ou corrigir um erro provável.
     Foque em: uma entidade que falta, um atributo chave esquecido ou uma cardinalidade que parece errada.
-    Responda em português.
+    Responda em português brasileiro (pt-BR) com acentuação correta.
   `;
 
   const response = await ai.models.generateContent({
