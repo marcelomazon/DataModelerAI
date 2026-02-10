@@ -116,7 +116,7 @@ const RelationshipLine: React.FC<RelationshipLineProps> = ({
     const offS = hasCrowStart ? CROWFOOT_SIZE : 0;
     const offE = hasCrowEnd ? CROWFOOT_SIZE : 0;
 
-    if (faceFrom === 'right') p1 = { x: from.position.x + CARD_WIDTH + offS - 31, y: from.position.y + h1 / 2 + offsetFrom };
+    if (faceFrom === 'right') p1 = { x: from.position.x + CARD_WIDTH + offS, y: from.position.y + h1 / 2 + offsetFrom };
     else if (faceFrom === 'left') p1 = { x: from.position.x - offS, y: from.position.y + h1 / 2 + offsetFrom };
     else if (faceFrom === 'top') p1 = { x: from.position.x + CARD_WIDTH / 2 + offsetFrom, y: from.position.y - offS };
     else p1 = { x: from.position.x + CARD_WIDTH / 2 + offsetFrom, y: from.position.y + h1 + offS };
@@ -124,7 +124,7 @@ const RelationshipLine: React.FC<RelationshipLineProps> = ({
     if (isSelf) {
       p2 = { x: to.position.x + CARD_WIDTH + offE, y: to.position.y + 20 + offsetTo };
     } else {
-      if (faceTo === 'right') p2 = { x: to.position.x + CARD_WIDTH + offE - 30, y: to.position.y + h2 / 2 + offsetTo };
+      if (faceTo === 'right') p2 = { x: to.position.x + CARD_WIDTH + offE, y: to.position.y + h2 / 2 + offsetTo };
       else if (faceTo === 'left') p2 = { x: to.position.x - offE, y: to.position.y + h2 / 2 + offsetTo };
       else if (faceTo === 'top') p2 = { x: to.position.x + CARD_WIDTH / 2 + offsetTo, y: to.position.y - offE };
       else p2 = { x: to.position.x + CARD_WIDTH / 2 + offsetTo, y: to.position.y + h2 + offE };
