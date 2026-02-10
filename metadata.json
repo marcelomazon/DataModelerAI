@@ -1,0 +1,5 @@
+{
+  "name": "DataModelerAI",
+  "description": "Uma ferramenta interativa para ensino modelagem de dados básico, identificação de entidades, atributos e relacionamentos, com base em estudos de caso, usando AI para fornecer feedbacks.",
+  "requestFramePermissions": []
+}
