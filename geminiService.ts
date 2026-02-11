@@ -85,7 +85,7 @@ export const evaluateModel = async (data: ModelData): Promise<EvaluationResult> 
               attributes: { type: Type.STRING },
               relationships: { type: Type.STRING }
             },
-            required: ["score", "feedback", "details"]
+            required: ["entities", "attributes", "relationships"]
           }
         },
         required: ["score", "feedback", "details"]
