@@ -1,6 +1,12 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Plus, ArrowLeft, Sparkles, Key, Download, X, FileJson, Image as ImageIcon, FileText, Ban, ZoomIn, ZoomOut, Maximize, Grid3X3, Loader2, Database, BookOpen, Lightbulb, ChevronDown } from 'lucide-react';
+import { 
+  Plus, ArrowLeft, Sparkles, Key, Download, X, FileJson, 
+  Image as ImageIcon, FileText, Ban, ZoomIn, ZoomOut, 
+  Maximize, Grid3X3, Loader2, Database, BookOpen, 
+  Lightbulb, ChevronDown, Underline, Strikethrough, 
+  Eraser, Type, Minus, Plus as PlusIcon, Copy, Bold
+} from 'lucide-react';
 import { Entity, Relationship, Attribute } from '../types';
 import EntityCard from './EntityCard';
 import RelationshipLine from './RelationshipLine';
@@ -34,6 +40,11 @@ const Sandbox: React.FC<SandboxProps> = ({
   const [isExporting, setIsExporting] = useState(false);
   const [useSnap, setUseSnap] = useState(true);
   
+  // Estados para Formatação do Estudo de Caso
+  const [formattedCaseStudy, setFormattedCaseStudy] = useState(caseStudy);
+  const [caseStudyFontSize, setCaseStudyFontSize] = useState(12);
+  const [isFormattingOpen, setIsFormattingOpen] = useState(false);
+  
   // Novas ferramentas
   const [showSQLModal, setShowSQLModal] = useState(false);
   const [showDictModal, setShowDictModal] = useState(false);
@@ -52,6 +63,12 @@ const Sandbox: React.FC<SandboxProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const mainAreaRef = useRef<HTMLElement>(null);
   const dbMenuRef = useRef<HTMLDivElement>(null);
+  const studyTextRef = useRef<HTMLDivElement>(null);
+
+  // Sincroniza o texto formatado quando um novo caso é gerado
+  useEffect(() => {
+    setFormattedCaseStudy(caseStudy);
+  }, [caseStudy]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -62,6 +79,21 @@ const Sandbox: React.FC<SandboxProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const applyFormat = (command: string, value: string | undefined = undefined) => {
+    document.execCommand(command, false, value);
+    if (studyTextRef.current) {
+      setFormattedCaseStudy(studyTextRef.current.innerHTML);
+    }
+  };
+
+  const clearFormatting = () => {
+    setFormattedCaseStudy(caseStudy);
+    setCaseStudyFontSize(12);
+    if (studyTextRef.current) {
+      studyTextRef.current.innerHTML = caseStudy;
+    }
+  };
 
   const addEntity = (name = 'Nova Entidade', attributeNames: string[] = []) => {
     const id = Math.random().toString(36).substr(2, 9);
@@ -329,26 +361,83 @@ const Sandbox: React.FC<SandboxProps> = ({
       </header>
 
       <div className="flex flex-1 overflow-hidden relative" ref={containerRef} onWheel={handleWheel}>
-        <aside className="w-80 bg-white border-r border-slate-200 overflow-y-auto p-6 hidden lg:block z-20">
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-3">
-               <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wider">Estudo de Caso</h3>
-               <button onClick={() => navigator.clipboard.writeText(caseStudy)} className="text-[10px] font-bold text-blue-600 hover:underline">Copiar</button>
-            </div>
-            <div className="bg-slate-50 p-4 rounded-xl text-xs text-slate-600 italic leading-relaxed border max-h-64 overflow-y-auto">
-              {caseStudy}
-            </div>
-          </div>
-
-          <div>
-            <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
+        <aside className="w-80 bg-white border-r border-slate-200 flex flex-col hidden lg:block z-20 relative">
+          <div className="flex-1 overflow-y-auto p-6">
+            <div className="mb-8">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-[10px] font-black text-amber-700 uppercase flex items-center gap-1.5 tracking-widest"><Lightbulb className="w-3.5 h-3.5" /> Mentor IA</span>
-                <button onClick={handleGetHint} disabled={isGettingHint} className="text-[9px] font-black text-amber-600 hover:underline disabled:opacity-50 px-2 py-1 bg-white rounded-lg border border-amber-100">Pedir Dica</button>
+                 <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wider">Estudo de Caso</h3>
+                 <div className="flex items-center gap-1">
+                   <button onClick={() => setIsFormattingOpen(!isFormattingOpen)} title={isFormattingOpen ? "Ocultar formatação" : "Exibir formatação"} className={`p-1.5 rounded-lg transition-all ${isFormattingOpen ? 'bg-blue-50 text-blue-600 shadow-inner' : 'hover:bg-slate-100 text-slate-400 hover:text-blue-600'}`}>
+                     <Type className="w-3.5 h-3.5" />
+                   </button>
+                   <button onClick={() => navigator.clipboard.writeText(caseStudy)} title="Copiar texto original" className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-600 transition-all">
+                     <Copy className="w-3.5 h-3.5" />
+                   </button>
+                 </div>
               </div>
-              <p className="text-[11px] text-amber-800 italic leading-snug">
-                {isGettingHint ? "Analisando seu progresso..." : activeHint || "Dificuldades? Peça uma dica para a IA analisar seu modelo."}
-              </p>
+
+              {/* Barra de Ferramentas de Formatação */}
+              {isFormattingOpen && (
+                <div className="mb-3 p-2 bg-slate-50 rounded-xl border border-slate-200 flex flex-wrap gap-1 items-center justify-between animate-in fade-in slide-in-from-top-1 duration-200">
+                  <div className="flex items-center gap-1 border-r border-slate-200 pr-1">
+                    <button onClick={() => applyFormat('foreColor', '#3b82f6')} className="w-4 h-4 rounded-full bg-blue-500 hover:scale-110 transition-transform" title="Azul" />
+                    <button onClick={() => applyFormat('foreColor', '#ef4444')} className="w-4 h-4 rounded-full bg-red-500 hover:scale-110 transition-transform" title="Vermelho" />
+                    <button onClick={() => applyFormat('foreColor', '#22c55e')} className="w-4 h-4 rounded-full bg-green-500 hover:scale-110 transition-transform" title="Verde" />
+                    <button onClick={() => applyFormat('foreColor', '#1e293b')} className="w-4 h-4 rounded-full bg-slate-800 hover:scale-110 transition-transform" title="Padrão" />
+                  </div>
+
+                  <div className="flex items-center gap-1 border-r border-slate-200 pr-1">
+                    <button onClick={() => applyFormat('bold')} className="p-1 rounded hover:bg-slate-200 text-slate-600" title="Negrito">
+                      <Bold className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => applyFormat('underline')} className="p-1 rounded hover:bg-slate-200 text-slate-600" title="Sublinhar">
+                      <Underline className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => applyFormat('strikeThrough')} className="p-1 rounded hover:bg-slate-200 text-slate-600" title="Riscado">
+                      <Strikethrough className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-1 border-r border-slate-200 pr-1">
+                    <button onClick={() => setCaseStudyFontSize(prev => Math.max(8, prev - 1))} className="p-1 rounded hover:bg-slate-200 text-slate-600" title="Reduzir Tamanho do Texto">
+                      <Minus className="w-3.5 h-3.5" />
+                    </button>
+                    <button onClick={() => setCaseStudyFontSize(prev => Math.min(24, prev + 1))} className="p-1 rounded hover:bg-slate-200 text-slate-600" title="Aumentar Tamanho do Texto">
+                      <PlusIcon className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <button onClick={clearFormatting} className="p-1 rounded hover:bg-red-50 text-red-500" title="Limpar todas as formatações">
+                    <Eraser className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              <div 
+                ref={studyTextRef}
+                contentEditable
+                suppressContentEditableWarning
+                onKeyDown={(e) => {
+                  if (!e.ctrlKey && !e.metaKey && e.key.length === 1) {
+                    e.preventDefault();
+                  }
+                }}
+                className="bg-slate-50 p-4 rounded-xl text-slate-600 italic leading-relaxed border max-h-96 overflow-y-auto outline-none transition-all selection:bg-blue-200"
+                style={{ fontSize: `${caseStudyFontSize}px` }}
+                dangerouslySetInnerHTML={{ __html: formattedCaseStudy }}
+              />
+            </div>
+
+            <div className="mb-8">
+              <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[10px] font-black text-amber-700 uppercase flex items-center gap-1.5 tracking-widest"><Lightbulb className="w-3.5 h-3.5" /> Mentor IA</span>
+                  <button onClick={handleGetHint} disabled={isGettingHint} className="text-[9px] font-black text-amber-600 hover:underline disabled:opacity-50 px-2 py-1 bg-white rounded-lg border border-amber-100">Pedir Dica</button>
+                </div>
+                <p className="text-[11px] text-amber-800 italic leading-snug">
+                  {isGettingHint ? "Analisando seu progresso..." : activeHint || "Dificuldades? Peça uma dica para a IA analisar seu modelo."}
+                </p>
+              </div>
             </div>
           </div>
         </aside>
@@ -381,6 +470,7 @@ const Sandbox: React.FC<SandboxProps> = ({
               })}
             </svg>
           </div>
+          
           <div className="absolute bottom-6 right-6 flex flex-col gap-2 z-30">
             <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-1 flex flex-col">
               <button onClick={() => setUseSnap(!useSnap)} className={`p-3 rounded-xl ${useSnap ? 'text-blue-600 bg-blue-50' : 'text-slate-400'}`}><Grid3X3 className="w-5 h-5" /></button>

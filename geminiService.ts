@@ -5,6 +5,8 @@ import { ModelData, EvaluationResult } from "./types";
 export type Difficulty = 'basic' | 'intermediate' | 'advanced';
 export type DatabaseType = 'mysql' | 'postgres';
 
+// --- Funções da Gemini API ---
+
 export const generateScenario = async (difficulty: Difficulty): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
@@ -167,4 +169,28 @@ export const getGuidedHint = async (data: ModelData): Promise<string> => {
   });
 
   return response.text || "Continue analisando os requisitos cuidadosamente.";
+};
+
+// --- Funções de Feedback e Estatísticas ---
+
+const LIKES_STORAGE_KEY = 'data-modeler-global-likes';
+
+/**
+ * Busca o número de curtidas "globais" (simulado via localStorage para esta demo).
+ */
+export const fetchGlobalLikes = async (): Promise<number> => {
+  // Simula um pequeno delay de rede para experiência real
+  await new Promise(resolve => setTimeout(resolve, 800));
+  const stored = localStorage.getItem(LIKES_STORAGE_KEY);
+  return stored ? parseInt(stored, 10) : 1240; // Valor base inicial simulado
+};
+
+/**
+ * Incrementa o número de curtidas "globais" (simulado via localStorage para esta demo).
+ */
+export const incrementGlobalLikes = async (): Promise<void> => {
+  // Simula um pequeno delay de rede para experiência real
+  await new Promise(resolve => setTimeout(resolve, 500));
+  const current = await fetchGlobalLikes();
+  localStorage.setItem(LIKES_STORAGE_KEY, (current + 1).toString());
 };

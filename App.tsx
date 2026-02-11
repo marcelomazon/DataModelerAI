@@ -91,7 +91,10 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       {view === 'home' ? (
-        <Home onStart={handleStartModeling} onImport={handleImportModel} />
+        <Home 
+          onStart={handleStartModeling} 
+          onImport={handleImportModel} 
+        />
       ) : (
         <Sandbox 
           caseStudy={caseStudy}
