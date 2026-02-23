@@ -15,6 +15,7 @@ export interface Entity {
   attributes: Attribute[];
   position: { x: number; y: number };
   isCollapsed?: boolean;
+  data?: Record<string, string>[];
 }
 
 export interface Relationship {

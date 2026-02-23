@@ -1,200 +1,185 @@
-
-import React, { useState, useEffect } from 'react';
-import { X, Heart, MessageSquare, Lightbulb, Send, CheckCircle2, Loader2, Star } from 'lucide-react';
-import { fetchGlobalLikes, incrementGlobalLikes } from '../geminiService';
+import React, { useState } from 'react';
+import { X, Send, Smile, Frown, Meh, Heart, ThumbsUp, Lightbulb } from 'lucide-react';
 
 interface FeedbackModalProps {
   onClose: () => void;
 }
 
-type Tab = 'like' | 'comment' | 'suggestion';
+const REACTIONS = [
+  { id: 'love', icon: Heart, label: 'Amei', color: 'text-rose-500', bg: 'bg-rose-50', border: 'border-rose-200' },
+  { id: 'good', icon: ThumbsUp, label: 'Muito Bom', color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-200' },
+  { id: 'idea', icon: Lightbulb, label: 'Tenho uma Ideia', color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-200' },
+  { id: 'neutral', icon: Meh, label: 'Neutro', color: 'text-slate-500', bg: 'bg-slate-50', border: 'border-slate-200' },
+  { id: 'bad', icon: Frown, label: 'Pode Melhorar', color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200' },
+];
 
 const FeedbackModal: React.FC<FeedbackModalProps> = ({ onClose }) => {
-  const [activeTab, setActiveTab] = useState<Tab>('like');
-  const [isLiked, setIsLiked] = useState(false);
-  const [comment, setComment] = useState('');
-  const [suggestion, setSuggestion] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [reaction, setReaction] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  
-  // Estados para curtidas globais
-  const [likesCount, setLikesCount] = useState<number | null>(null);
-  const [isLoadingLikes, setIsLoadingLikes] = useState(true);
-
-  // Carrega as curtidas globais do "servidor" ao montar o componente
-  useEffect(() => {
-    const loadLikes = async () => {
-      setIsLoadingLikes(true);
-      try {
-        const count = await fetchGlobalLikes();
-        setLikesCount(count);
-      } catch (error) {
-        console.error("Erro ao carregar curtidas globais", error);
-      } finally {
-        setIsLoadingLikes(false);
-      }
-    };
-
-    const savedLike = localStorage.getItem('app-liked');
-    if (savedLike) setIsLiked(true);
-    
-    loadLikes();
-  }, []);
-
-  const handleLike = async () => {
-    if (isLiked) return; // Uma vez curtido, o usuário não pode descurtir globalmente nesta demo
-
-    const nextState = true;
-    setIsLiked(nextState);
-    
-    // Atualiza UI localmente imediatamente
-    setLikesCount(prev => (prev !== null ? prev + 1 : 1));
-    localStorage.setItem('app-liked', 'true');
-
-    // Persiste no "servidor"
-    try {
-      await incrementGlobalLikes();
-    } catch (error) {
-      console.error("Falha ao persistir curtida no servidor", error);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!name.trim() || !email.trim() || !message.trim()) {
+      alert('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    if (message.length > 200) {
+      alert('A mensagem deve ter no máximo 200 caracteres.');
+      return;
+    }
+
     setIsSubmitting(true);
-    
-    // Simulando envio de feedback/sugestão para backend/API
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsSubmitting(false);
-    setIsSuccess(true);
-    
-    setTimeout(() => {
-      onClose();
-    }, 2000);
+
+    try {
+      const selectedReaction = reaction ? REACTIONS.find(r => r.id === reaction)?.label : null;
+      
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          message,
+          reaction: selectedReaction
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        if (data.simulated) {
+          alert('Feedback simulado com sucesso! (Configure as variáveis SMTP para envio real).');
+        } else {
+          alert('Feedback enviado com sucesso!');
+        }
+        onClose();
+      } else {
+        alert(`Erro ao enviar feedback: ${data.error || 'Tente novamente mais tarde.'}`);
+      }
+    } catch (error) {
+      console.error('Erro:', error);
+      alert('Erro de conexão ao enviar feedback.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-md rounded-[32px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-        <div className="px-8 pt-8 pb-4 flex items-center justify-between">
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">Feedback Hub</h2>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-            <X className="w-6 h-6 text-slate-400" />
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-slate-100">
+          <div>
+            <h3 className="text-xl font-black text-slate-800">Enviar Feedback</h3>
+            <p className="text-slate-500 text-sm mt-1">Sua opinião nos ajuda a melhorar.</p>
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {isSuccess ? (
-          <div className="p-12 flex flex-col items-center text-center animate-in fade-in zoom-in duration-500">
-            <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6">
-              <CheckCircle2 className="w-10 h-10" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-800 mb-2">Obrigado pelo carinho!</h3>
-            <p className="text-slate-500 text-sm">Sua opinião nos ajuda a construir uma ferramenta cada vez melhor.</p>
+        {/* Body */}
+        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5">
+          <div>
+            <label className="block text-xs font-black text-slate-500 uppercase mb-2">
+              Nome <span className="text-red-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Como podemos te chamar?"
+              className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-blue-500 transition-all"
+            />
           </div>
-        ) : (
-          <>
-            <div className="px-4 mb-6">
-              <div className="flex bg-slate-100 p-1.5 rounded-2xl">
-                <button 
-                  onClick={() => setActiveTab('like')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black transition-all ${activeTab === 'like' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                >
-                  <Heart className={`w-4 h-4 ${activeTab === 'like' ? 'fill-blue-600' : ''}`} />
-                  Curtir
-                </button>
-                <button 
-                  onClick={() => setActiveTab('comment')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black transition-all ${activeTab === 'comment' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  Comentar
-                </button>
-                <button 
-                  onClick={() => setActiveTab('suggestion')}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-black transition-all ${activeTab === 'suggestion' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                >
-                  <Lightbulb className="w-4 h-4" />
-                  Melhorias
-                </button>
-              </div>
+
+          <div>
+            <label className="block text-xs font-black text-slate-500 uppercase mb-2">
+              E-mail <span className="text-red-500">*</span>
+            </label>
+            <input 
+              type="email" 
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="seu@email.com"
+              className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-blue-500 transition-all"
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-black text-slate-500 uppercase">
+                Mensagem <span className="text-red-500">*</span>
+              </label>
+              <span className={`text-xs font-bold ${message.length > 200 ? 'text-red-500' : 'text-slate-400'}`}>
+                {message.length}/200
+              </span>
             </div>
+            <textarea 
+              required
+              maxLength={200}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Conte-nos sua experiência, sugira melhorias ou relate problemas..."
+              className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-blue-500 transition-all resize-none h-28"
+            />
+          </div>
 
-            <div className="px-8 pb-8">
-              {activeTab === 'like' && (
-                <div className="py-6 flex flex-col items-center text-center animate-in fade-in duration-300">
-                  <button 
-                    onClick={handleLike}
-                    disabled={isLiked}
-                    className={`group relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-500 active:scale-90 ${isLiked ? 'bg-red-50 text-red-500 border-red-100 border-2 cursor-default' : 'bg-slate-50 text-slate-300 border-slate-100 border-2 hover:border-red-200 hover:text-red-300'}`}
-                  >
-                    <Heart className={`w-10 h-10 transition-transform group-hover:scale-110 ${isLiked ? 'fill-current' : ''}`} />
-                    {isLiked && <div className="absolute inset-0 rounded-full border-4 border-red-500 animate-ping opacity-20" />}
-                  </button>
-                  <div className="mt-6">
-                    {isLoadingLikes ? (
-                      <Loader2 className="w-8 h-8 animate-spin text-slate-200 mx-auto" />
-                    ) : (
-                      <span className="text-3xl font-black text-slate-800">{likesCount?.toLocaleString()}</span>
-                    )}
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Pessoas amaram o app globalmente</p>
-                  </div>
-                  <p className="mt-6 text-sm text-slate-500 leading-relaxed italic">
-                    {isLiked ? "Ficamos muito felizes que você está gostando!" : "O que achou da experiência? Dê um coração se estiver aprendendo bastante!"}
-                  </p>
-                </div>
-              )}
-
-              {activeTab === 'comment' && (
-                <form onSubmit={handleSubmit} className="animate-in slide-in-from-right-4 duration-300">
-                  <p className="text-sm text-slate-500 mb-4">Conte-nos sua experiência geral com o DataModelerAI.</p>
-                  <textarea 
-                    autoFocus
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    placeholder="Escreva aqui seu depoimento..."
-                    className="w-full h-32 bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-sm font-medium outline-none focus:border-blue-500 focus:bg-white transition-all resize-none"
-                    required
-                  />
-                  <button 
-                    disabled={isSubmitting || !comment.trim()}
-                    className="w-full mt-4 py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white rounded-2xl font-black uppercase tracking-wider shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2"
-                  >
-                    {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-4 h-4" />}
-                    Enviar Comentário
-                  </button>
-                </form>
-              )}
-
-              {activeTab === 'suggestion' && (
-                <form onSubmit={handleSubmit} className="animate-in slide-in-from-right-4 duration-300">
-                  <p className="text-sm text-slate-500 mb-4">Tem alguma ideia de nova funcionalidade ou correção?</p>
-                  <textarea 
-                    autoFocus
-                    value={suggestion}
-                    onChange={(e) => setSuggestion(e.target.value)}
-                    placeholder="Ex: Gostaria de ver exportação para PDF ou mais tipos de atributos..."
-                    className="w-full h-32 bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-sm font-medium outline-none focus:border-blue-500 focus:bg-white transition-all resize-none"
-                    required
-                  />
-                  <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-xl flex gap-3">
-                    <div className="p-2 bg-blue-100 text-blue-600 rounded-lg h-fit"><Star className="w-4 h-4" /></div>
-                    <p className="text-[11px] text-blue-700 leading-snug">
-                      <strong>Sugestão VIP:</strong> Feedbacks técnicos são analisados por nossa IA para priorizar o desenvolvimento de novas ferramentas.
-                    </p>
-                  </div>
-                  <button 
-                    disabled={isSubmitting || !suggestion.trim()}
-                    className="w-full mt-6 py-4 bg-slate-800 hover:bg-slate-900 disabled:bg-slate-300 text-white rounded-2xl font-black uppercase tracking-wider shadow-lg transition-all flex items-center justify-center gap-2"
-                  >
-                    {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-4 h-4" />}
-                    Sugerir Melhoria
-                  </button>
-                </form>
-              )}
+          <div>
+            <label className="block text-xs font-black text-slate-500 uppercase mb-3">
+              Reação (Opcional)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {REACTIONS.map((r) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  onClick={() => setReaction(reaction === r.id ? null : r.id)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-bold transition-all ${
+                    reaction === r.id 
+                      ? `${r.bg} ${r.border} ${r.color} ring-2 ring-offset-1 ring-${r.color.split('-')[1]}-200` 
+                      : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                  }`}
+                >
+                  <r.icon className="w-3.5 h-3.5" />
+                  {r.label}
+                </button>
+              ))}
             </div>
-          </>
-        )}
+          </div>
+
+          {/* Footer */}
+          <div className="pt-4 mt-2 border-t border-slate-100 flex justify-end gap-3">
+            <button 
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2.5 text-slate-500 font-bold hover:bg-slate-100 rounded-xl transition-colors text-sm"
+            >
+              Cancelar
+            </button>
+            <button 
+              type="submit"
+              disabled={isSubmitting || !name.trim() || !email.trim() || !message.trim() || message.length > 200}
+              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2 text-sm"
+            >
+              <Send className="w-4 h-4" />
+              {isSubmitting ? 'Enviando...' : 'Enviar Feedback'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

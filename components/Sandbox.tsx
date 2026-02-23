@@ -5,7 +5,7 @@ import {
   Image as ImageIcon, FileText, Ban, ZoomIn, ZoomOut, 
   Maximize, Grid3X3, Loader2, Database, BookOpen, 
   Lightbulb, ChevronDown, Underline, Strikethrough, 
-  Eraser, Type, Minus, Plus as PlusIcon, Copy, Bold
+  Eraser, Type, Minus, Plus as PlusIcon, Copy, Bold, Table
 } from 'lucide-react';
 import { Entity, Relationship, Attribute } from '../types';
 import EntityCard from './EntityCard';
@@ -14,6 +14,7 @@ import { generateSQL, getGuidedHint, DatabaseType } from '../geminiService';
 import { toPng } from 'html-to-image';
 import SQLModal from './SQLModal';
 import DataDictionaryModal from './DataDictionaryModal';
+import OccurrenceModal from './OccurrenceModal';
 
 interface SandboxProps {
   caseStudy: string;
@@ -48,6 +49,7 @@ const Sandbox: React.FC<SandboxProps> = ({
   // Novas ferramentas
   const [showSQLModal, setShowSQLModal] = useState(false);
   const [showDictModal, setShowDictModal] = useState(false);
+  const [showOccurrenceModal, setShowOccurrenceModal] = useState(false);
   const [showDBMenu, setShowDBMenu] = useState(false);
   const [isGeneratingSQL, setIsGeneratingSQL] = useState(false);
   const [generatedSQL, setGeneratedSQL] = useState('');
@@ -120,6 +122,10 @@ const Sandbox: React.FC<SandboxProps> = ({
     setEntities(prev => [...prev, newEntity]);
     setSelectedEntityId(id);
     return id;
+  };
+
+  const handleUpdateEntityData = (entityId: string, data: Record<string, string>[]) => {
+    setEntities(prev => prev.map(e => e.id === entityId ? { ...e, data } : e));
   };
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
@@ -298,10 +304,21 @@ const Sandbox: React.FC<SandboxProps> = ({
           <div className="h-8 w-px bg-slate-200 mx-1" />
           
           {!isLinking ? (
-            <button onClick={() => addEntity()} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition-all shadow-md active:scale-95">
-              <Plus className="w-4 h-4" />
-              <span>Entidade</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button onClick={() => addEntity()} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition-all shadow-md active:scale-95">
+                <Plus className="w-4 h-4" />
+                <span>Entidade</span>
+              </button>
+              <button 
+                onClick={() => selectedEntityId && setShowOccurrenceModal(true)} 
+                disabled={!selectedEntityId}
+                className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold text-sm transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                title={selectedEntityId ? "Simular Ocorrências (Dados)" : "Selecione uma entidade para simular ocorrências"}
+              >
+                <Table className={`w-4 h-4 ${selectedEntityId ? 'text-blue-500' : 'text-slate-400'}`} />
+                <span className="hidden xl:inline">Ocorrências</span>
+              </button>
+            </div>
           ) : (
             <button onClick={() => { setIsLinking(false); setLinkStartId(null); }} className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 border border-red-200 rounded-xl font-bold text-sm transition-all animate-pulse">
               <Ban className="w-4 h-4" />
@@ -506,6 +523,14 @@ const Sandbox: React.FC<SandboxProps> = ({
 
       {showSQLModal && <SQLModal sql={generatedSQL} dbType={selectedDB} onClose={() => setShowSQLModal(false)} />}
       {showDictModal && <DataDictionaryModal entities={entities} onClose={() => setShowDictModal(false)} />}
+      
+      {showOccurrenceModal && selectedEntityId && (
+        <OccurrenceModal 
+          entity={entities.find(e => e.id === selectedEntityId)!} 
+          onClose={() => setShowOccurrenceModal(false)} 
+          onUpdate={(data) => handleUpdateEntityData(selectedEntityId, data)} 
+        />
+      )}
 
       {isExporting && (
         <div className="fixed inset-0 z-[200] bg-white flex flex-col items-center justify-center pointer-events-none">

@@ -4,7 +4,9 @@ import { Entity, Relationship, EvaluationResult, ModelData } from './types';
 import Sandbox from './components/Sandbox';
 import Home from './components/Home';
 import EvaluationModal from './components/EvaluationModal';
+import FeedbackModal from './components/FeedbackModal';
 import { evaluateModel } from './geminiService';
+import { MessageCircle } from 'lucide-react';
 
 const STORAGE_KEY = 'data-modeler-tutor-state';
 
@@ -16,6 +18,7 @@ const App: React.FC = () => {
   const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   // Carregar estado inicial do localStorage
   useEffect(() => {
@@ -113,6 +116,23 @@ const App: React.FC = () => {
           result={evaluation} 
           onClose={() => setEvaluation(null)} 
         />
+      )}
+
+      {/* Floating Feedback Button */}
+      <button
+        onClick={() => setShowFeedbackModal(true)}
+        className="fixed bottom-6 left-6 z-50 p-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 group flex items-center gap-2"
+        title="Enviar Feedback"
+      >
+        <MessageCircle className="w-6 h-6" />
+        <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out whitespace-nowrap font-bold text-sm">
+          Feedback
+        </span>
+      </button>
+
+      {/* Feedback Modal */}
+      {showFeedbackModal && (
+        <FeedbackModal onClose={() => setShowFeedbackModal(false)} />
       )}
     </div>
   );
