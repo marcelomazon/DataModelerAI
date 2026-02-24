@@ -1,15 +1,17 @@
 
 import React, { useState, useRef } from 'react';
-import { Network, Rocket, Sparkles, ChevronDown, Loader2, Upload } from 'lucide-react';
+import { Network, Rocket, Sparkles, ChevronDown, Loader2, Upload, ArrowRight } from 'lucide-react';
 import { generateScenario, Difficulty } from '../geminiService';
 import { ModelData } from '../types';
 
 interface HomeProps {
   onStart: (text: string) => void;
   onImport: (data: ModelData) => void;
+  onContinue?: () => void;
+  hasActiveModel?: boolean;
 }
 
-const Home: React.FC<HomeProps> = ({ onStart, onImport }) => {
+const Home: React.FC<HomeProps> = ({ onStart, onImport, onContinue, hasActiveModel }) => {
   const [input, setInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showDifficultyMenu, setShowDifficultyMenu] = useState(false);
@@ -135,6 +137,16 @@ const Home: React.FC<HomeProps> = ({ onStart, onImport }) => {
                 </div>
               )}
             </div>
+
+            {hasActiveModel && onContinue && (
+              <button
+                onClick={onContinue}
+                className="flex items-center justify-center p-1.5 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-100 transition-all ml-1"
+                title="Voltar para a Sandbox"
+              >
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 

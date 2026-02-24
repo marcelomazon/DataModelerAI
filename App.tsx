@@ -97,6 +97,8 @@ const App: React.FC = () => {
         <Home 
           onStart={handleStartModeling} 
           onImport={handleImportModel} 
+          onContinue={() => setView('sandbox')}
+          hasActiveModel={entities.length > 0 || caseStudy.trim() !== ''}
         />
       ) : (
         <Sandbox 
