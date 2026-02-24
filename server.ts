@@ -15,15 +15,27 @@ async function startServer() {
     try {
       // Configuração do Nodemailer
       // O usuário precisará configurar as variáveis de ambiente no AI Studio
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || "smtp.gmail.com",
-        port: parseInt(process.env.SMTP_PORT || "587"),
-        secure: process.env.SMTP_SECURE === "true",
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
-      });
+      const isGmail = !process.env.SMTP_HOST || process.env.SMTP_HOST.includes('gmail');
+      
+      const transporter = nodemailer.createTransport(
+        isGmail 
+          ? {
+              service: 'gmail',
+              auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
+              }
+            }
+          : {
+              host: process.env.SMTP_HOST,
+              port: parseInt(process.env.SMTP_PORT || "587"),
+              secure: process.env.SMTP_SECURE === "true",
+              auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
+              },
+            }
+      );
 
       // Se não houver credenciais configuradas, simula o envio no console para testes
       if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {

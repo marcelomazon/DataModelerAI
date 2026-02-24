@@ -17,7 +17,7 @@ const Home: React.FC<HomeProps> = ({ onStart, onImport }) => {
 
   const examples = [
     "Um sistema de biblioteca precisa gerenciar livros, autores e empréstimos. Cada livro tem um título e ISBN. Um autor pode escrever vários livros. Um usuário pode fazer vários empréstimos.",
-    "Uma clínica médica deseja controlar consultas. Pacientes agendam consultas com médicos. Médicos têm especialidade e CRM. Pacientes têm CPF e convênio. Uma consulta gera uma receita médica.",
+    "Uma clínica médica deseja controlar consultas. Pacientes agendam consultas com médicos. Médicos têm nome, especialidade e CRM. Pacientes têm nome, CPF e convênio. Uma consulta gera uma receita médica, com numero, data e descrição.",
   ];
 
   const handleGenerate = async (diff: Difficulty) => {
@@ -75,8 +75,7 @@ const Home: React.FC<HomeProps> = ({ onStart, onImport }) => {
         DataModeler<span className="text-blue-600">AI</span>
       </h1>
       <p className="text-xl text-slate-600 mb-12 max-w-2xl">
-        Transforme requisitos textuais em diagramas de entidades e relacionamentos. 
-        Aprenda Modelagem de Dados com dicas inteligentes e feedbacks em tempo real.
+        Transforme requisitos textuais em diagramas de entidades e relacionamentos, com dicas inteligentes e feedbacks em tempo real.
       </p>
 
       <div className="w-full bg-white p-8 rounded-3xl shadow-2xl border border-slate-100 relative">
