@@ -298,7 +298,7 @@ const Sandbox: React.FC<SandboxProps> = ({
                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
                 <span>Ativo</span>
               </div>
-              <span className="text-[10px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded font-black border border-slate-200">V1.12</span>
+              <span className="text-[10px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded font-black border border-slate-200">V1.13</span>
             </div>
           </div>
           <div className="h-8 w-px bg-slate-200 mx-1" />
