@@ -1,10 +1,10 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { 
-  Plus, ArrowLeft, Sparkles, Key, Download, X, FileJson, 
-  Image as ImageIcon, FileText, Ban, ZoomIn, ZoomOut, 
-  Maximize, Grid3X3, Loader2, Database, BookOpen, 
-  Lightbulb, ChevronDown, Underline, Strikethrough, 
+import {
+  Plus, ArrowLeft, Sparkles, Key, Download, X, FileJson,
+  Image as ImageIcon, FileText, Ban, ZoomIn, ZoomOut,
+  Maximize, Grid3X3, Loader2, Database, BookOpen,
+  Lightbulb, ChevronDown, Underline, Strikethrough,
   Eraser, Type, Minus, Plus as PlusIcon, Copy, Bold, Table
 } from 'lucide-react';
 import { Entity, Relationship, Attribute } from '../types';
@@ -29,7 +29,7 @@ interface SandboxProps {
 
 type ExportType = 'json' | 'png' | 'txt';
 
-const Sandbox: React.FC<SandboxProps> = ({ 
+const Sandbox: React.FC<SandboxProps> = ({
   caseStudy, entities, setEntities, relationships, setRelationships, onEvaluate, isEvaluating, onBack
 }) => {
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
@@ -40,12 +40,12 @@ const Sandbox: React.FC<SandboxProps> = ({
   const [exportType, setExportType] = useState<ExportType>('json');
   const [isExporting, setIsExporting] = useState(false);
   const [useSnap, setUseSnap] = useState(true);
-  
+
   // Estados para Formatação do Estudo de Caso
   const [formattedCaseStudy, setFormattedCaseStudy] = useState(caseStudy);
   const [caseStudyFontSize, setCaseStudyFontSize] = useState(12);
   const [isFormattingOpen, setIsFormattingOpen] = useState(false);
-  
+
   // Novas ferramentas
   const [showSQLModal, setShowSQLModal] = useState(false);
   const [showDictModal, setShowDictModal] = useState(false);
@@ -60,7 +60,7 @@ const Sandbox: React.FC<SandboxProps> = ({
   const [transform, setTransform] = useState({ x: 0, y: 0, k: 1 });
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
-  
+
   const canvasRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const mainAreaRef = useRef<HTMLElement>(null);
@@ -99,12 +99,12 @@ const Sandbox: React.FC<SandboxProps> = ({
 
   const addEntity = (name = 'Nova Entidade', attributeNames: string[] = []) => {
     const id = Math.random().toString(36).substr(2, 9);
-    const attributes: Attribute[] = attributeNames.map(attrName => ({ 
-      name: attrName.toLowerCase(), 
-      isPK: false, 
-      category: 'descriptive' 
+    const attributes: Attribute[] = attributeNames.map(attrName => ({
+      name: attrName.toLowerCase(),
+      isPK: false,
+      category: 'descriptive'
     }));
-    
+
     let spawnX = (window.innerWidth / 2 - 400 - transform.x) / transform.k;
     let spawnY = (window.innerHeight / 2 - 100 - transform.y) / transform.k;
 
@@ -134,7 +134,7 @@ const Sandbox: React.FC<SandboxProps> = ({
       const zoomSpeed = 0.001;
       const delta = -e.deltaY * zoomSpeed;
       const newK = Math.min(Math.max(transform.k + delta, 0.2), 3);
-      
+
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
@@ -265,7 +265,7 @@ const Sandbox: React.FC<SandboxProps> = ({
         URL.revokeObjectURL(url);
       } else if (exportType === 'png' && canvasRef.current) {
         const dataUrl = await toPng(canvasRef.current, {
-          backgroundColor: '#f1f5f9', 
+          backgroundColor: '#f1f5f9',
           style: { transform: 'none', left: '0', top: '0', position: 'relative' },
           width: Math.max(...entities.map(e => e.position.x + 300)) + 100,
           height: Math.max(...entities.map(e => e.position.y + 400)) + 100,
@@ -302,15 +302,15 @@ const Sandbox: React.FC<SandboxProps> = ({
             </div>
           </div>
           <div className="h-8 w-px bg-slate-200 mx-1" />
-          
+
           {!isLinking ? (
             <div className="flex items-center gap-2">
               <button onClick={() => addEntity()} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition-all shadow-md active:scale-95">
                 <Plus className="w-4 h-4" />
                 <span>Entidade</span>
               </button>
-              <button 
-                onClick={() => selectedEntityId && setShowOccurrenceModal(true)} 
+              <button
+                onClick={() => selectedEntityId && setShowOccurrenceModal(true)}
                 disabled={!selectedEntityId}
                 className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold text-sm transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 title={selectedEntityId ? "Simular Ocorrências (Dados)" : "Selecione uma entidade para simular ocorrências"}
@@ -332,30 +332,30 @@ const Sandbox: React.FC<SandboxProps> = ({
             <BookOpen className="w-4 h-4 text-slate-600" />
             <span className="hidden xl:inline text-xs font-bold text-slate-600">Dicionário</span>
           </button>
-          
+
           <div className="relative" ref={dbMenuRef}>
-            <button 
-              onClick={() => !isGeneratingSQL && setShowDBMenu(!showDBMenu)} 
-              disabled={isGeneratingSQL} 
-              title="Gerar script SQL DDL" 
+            <button
+              onClick={() => !isGeneratingSQL && setShowDBMenu(!showDBMenu)}
+              disabled={isGeneratingSQL}
+              title="Gerar script SQL DDL"
               className="p-2 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-2 hover:bg-slate-100 transition-colors disabled:opacity-50"
             >
               {isGeneratingSQL ? <Loader2 className="w-4 h-4 animate-spin text-blue-600" /> : <Database className="w-4 h-4 text-slate-600" />}
               <span className="hidden xl:inline text-xs font-bold text-slate-600">SQL DDL</span>
               <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${showDBMenu ? 'rotate-180' : ''}`} />
             </button>
-            
+
             {showDBMenu && (
               <div className="absolute top-full mt-2 right-0 w-48 bg-white border border-slate-100 rounded-xl shadow-xl z-50 py-2 animate-in fade-in slide-in-from-top-2">
                 <p className="px-4 py-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 mb-1">Selecione o SGBD:</p>
-                <button 
+                <button
                   onClick={() => handleGenerateSQL('mysql')}
                   className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center justify-between"
                 >
                   MySQL
                   <span className="text-[10px] text-slate-400 font-normal">v8.0+</span>
                 </button>
-                <button 
+                <button
                   onClick={() => handleGenerateSQL('postgres')}
                   className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center justify-between"
                 >
@@ -382,15 +382,15 @@ const Sandbox: React.FC<SandboxProps> = ({
           <div className="flex-1 overflow-y-auto p-6">
             <div className="mb-8">
               <div className="flex items-center justify-between mb-3">
-                 <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wider">Estudo de Caso</h3>
-                 <div className="flex items-center gap-1">
-                   <button onClick={() => setIsFormattingOpen(!isFormattingOpen)} title={isFormattingOpen ? "Ocultar formatação" : "Exibir formatação"} className={`p-1.5 rounded-lg transition-all ${isFormattingOpen ? 'bg-blue-50 text-blue-600 shadow-inner' : 'hover:bg-slate-100 text-slate-400 hover:text-blue-600'}`}>
-                     <Type className="w-3.5 h-3.5" />
-                   </button>
-                   <button onClick={() => navigator.clipboard.writeText(caseStudy)} title="Copiar texto original" className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-600 transition-all">
-                     <Copy className="w-3.5 h-3.5" />
-                   </button>
-                 </div>
+                <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wider">Estudo de Caso</h3>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setIsFormattingOpen(!isFormattingOpen)} title={isFormattingOpen ? "Ocultar formatação" : "Exibir formatação"} className={`p-1.5 rounded-lg transition-all ${isFormattingOpen ? 'bg-blue-50 text-blue-600 shadow-inner' : 'hover:bg-slate-100 text-slate-400 hover:text-blue-600'}`}>
+                    <Type className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => navigator.clipboard.writeText(caseStudy)} title="Copiar texto original" className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-600 transition-all">
+                    <Copy className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
               {/* Barra de Ferramentas de Formatação */}
@@ -430,7 +430,7 @@ const Sandbox: React.FC<SandboxProps> = ({
                 </div>
               )}
 
-              <div 
+              <div
                 ref={studyTextRef}
                 contentEditable
                 suppressContentEditableWarning
@@ -464,7 +464,7 @@ const Sandbox: React.FC<SandboxProps> = ({
           <div ref={canvasRef} className="absolute inset-0 origin-top-left" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.k})` }}>
             {entities.map(entity => (
               <EntityCard
-                key={entity.id} entity={entity} isSelected={selectedEntityId === entity.id} isLinking={isLinking && linkStartId === entity.id} isExporting={isExporting} 
+                key={entity.id} entity={entity} isSelected={selectedEntityId === entity.id} isLinking={isLinking && linkStartId === entity.id} isExporting={isExporting}
                 onClick={() => {
                   if (isLinking && linkStartId && linkStartId !== entity.id) {
                     setRelationships(prev => [...prev, { id: Math.random().toString(36).substr(2, 9), fromId: linkStartId, toId: entity.id, cardinality: '1:N', controlPointOffset: { x: 0, y: 0 } }]);
@@ -483,11 +483,11 @@ const Sandbox: React.FC<SandboxProps> = ({
                 const from = entities.find(e => e.id === rel.fromId);
                 const to = entities.find(e => e.id === rel.toId);
                 if (!from || !to) return null;
-                return (<RelationshipLine key={rel.id} from={from} to={to} rel={rel} entities={entities} relationships={relationships} isExporting={isExporting} onUpdate={(id, d) => setRelationships(prev => prev.map(r => r.id === id ? {...r, ...d} : r))} onDelete={(id) => setRelationships(prev => prev.filter(r => r.id !== id))} canvasRef={canvasRef} />);
+                return (<RelationshipLine key={rel.id} from={from} to={to} rel={rel} entities={entities} relationships={relationships} isExporting={isExporting} onUpdate={(id, d) => setRelationships(prev => prev.map(r => r.id === id ? { ...r, ...d } : r))} onDelete={(id) => setRelationships(prev => prev.filter(r => r.id !== id))} canvasRef={canvasRef} />);
               })}
             </svg>
           </div>
-          
+
           <div className="absolute bottom-6 right-6 flex flex-col gap-2 z-30">
             <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-1 flex flex-col">
               <button onClick={() => setUseSnap(!useSnap)} className={`p-3 rounded-xl ${useSnap ? 'text-blue-600 bg-blue-50' : 'text-slate-400'}`}><Grid3X3 className="w-5 h-5" /></button>
@@ -523,12 +523,14 @@ const Sandbox: React.FC<SandboxProps> = ({
 
       {showSQLModal && <SQLModal sql={generatedSQL} dbType={selectedDB} onClose={() => setShowSQLModal(false)} />}
       {showDictModal && <DataDictionaryModal entities={entities} onClose={() => setShowDictModal(false)} />}
-      
+
       {showOccurrenceModal && selectedEntityId && (
-        <OccurrenceModal 
-          entity={entities.find(e => e.id === selectedEntityId)!} 
-          onClose={() => setShowOccurrenceModal(false)} 
-          onUpdate={(data) => handleUpdateEntityData(selectedEntityId, data)} 
+        <OccurrenceModal
+          entity={entities.find(e => e.id === selectedEntityId)!}
+          entities={entities}
+          relationships={relationships}
+          onClose={() => setShowOccurrenceModal(false)}
+          onUpdate={(data) => handleUpdateEntityData(selectedEntityId, data)}
         />
       )}
 
