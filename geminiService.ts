@@ -1,6 +1,7 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 import { ModelData, EvaluationResult } from "./types";
+import { getActiveApiKey } from "./utils/configService";
 
 export type Difficulty = 'basic' | 'intermediate' | 'advanced';
 export type DatabaseType = 'mysql' | 'postgres';
@@ -8,8 +9,10 @@ export type DatabaseType = 'mysql' | 'postgres';
 // --- Funções da Gemini API ---
 
 export const generateScenario = async (difficulty: Difficulty): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
+  const apiKey = getActiveApiKey();
+  if (!apiKey) throw new Error("API Key não configurada.");
+  const ai = new GoogleGenAI({ apiKey });
+
   const descriptions = {
     basic: "2 a 3 entidades simples, focado em conceitos fundamentais.",
     intermediate: "4 a 7 entidades, incluindo a necessidade de entidades associativas (muitos-para-muitos).",
@@ -48,8 +51,10 @@ export const generateScenario = async (difficulty: Difficulty): Promise<string> 
 };
 
 export const evaluateModel = async (data: ModelData): Promise<EvaluationResult> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
+  const apiKey = getActiveApiKey();
+  if (!apiKey) throw new Error("API Key não configurada.");
+  const ai = new GoogleGenAI({ apiKey });
+
   const prompt = `
     Aja como um professor especialista em modelagem de dados (DER/MER).
     
@@ -57,15 +62,15 @@ export const evaluateModel = async (data: ModelData): Promise<EvaluationResult> 
     "${data.caseStudy}"
     
     O ALUNO MODELOU O SEGUINTE:
-    Entidades e Atributos: ${JSON.stringify(data.entities.map(e => ({ 
-      name: e.name, 
-      attrs: e.attributes.map(a => `${a.name}${a.isPK ? ' (PK)' : ''}`) 
-    })))}
-    Relacionamentos: ${JSON.stringify(data.relationships.map(r => ({ 
-      from: data.entities.find(e => e.id === r.fromId)?.name, 
-      to: data.entities.find(e => e.id === r.toId)?.name,
-      cardinality: r.cardinality 
-    })))}
+    Entidades e Atributos: ${JSON.stringify(data.entities.map(e => ({
+    name: e.name,
+    attrs: e.attributes.map(a => `${a.name}${a.isPK ? ' (PK)' : ''}`)
+  })))}
+    Relacionamentos: ${JSON.stringify(data.relationships.map(r => ({
+    from: data.entities.find(e => e.id === r.fromId)?.name,
+    to: data.entities.find(e => e.id === r.toId)?.name,
+    cardinality: r.cardinality
+  })))}
 
     Avalie se o modelo do aluno reflete corretamente as regras de negócio do estudo de caso.
     Considere se o aluno identificou corretamente as Chaves Primárias (PK).
@@ -108,8 +113,10 @@ export const evaluateModel = async (data: ModelData): Promise<EvaluationResult> 
 };
 
 export const generateSQL = async (data: ModelData, dbType: DatabaseType = 'mysql'): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
+  const apiKey = getActiveApiKey();
+  if (!apiKey) throw new Error("API Key não configurada.");
+  const ai = new GoogleGenAI({ apiKey });
+
   const mysqlRules = `
     REGRAS ESPECÍFICAS PARA MYSQL:
     1. Use a sintaxe de criação de tabelas do MySQL.
@@ -137,9 +144,9 @@ export const generateSQL = async (data: ModelData, dbType: DatabaseType = 'mysql
     
     DADOS DO MODELO:
     ${JSON.stringify({
-      entities: data.entities.map(e => ({ name: e.name, attrs: e.attributes })),
-      relationships: data.relationships
-    })}
+    entities: data.entities.map(e => ({ name: e.name, attrs: e.attributes })),
+    relationships: data.relationships
+  })}
 
     Responda APENAS com o código SQL pronto para execução, sem blocos de código Markdown ou texto extra.
   `;
@@ -156,7 +163,9 @@ export const generateSQL = async (data: ModelData, dbType: DatabaseType = 'mysql
 };
 
 export const getGuidedHint = async (data: ModelData): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = getActiveApiKey();
+  if (!apiKey) throw new Error("API Key não configurada.");
+  const ai = new GoogleGenAI({ apiKey });
   const prompt = `
     Aja como um mentor de modelagem de dados. O aluno está tentando resolver este estudo de caso:
     "${data.caseStudy}"

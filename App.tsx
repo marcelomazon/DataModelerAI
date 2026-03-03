@@ -5,8 +5,10 @@ import Sandbox from './components/Sandbox';
 import Home from './components/Home';
 import EvaluationModal from './components/EvaluationModal';
 import FeedbackModal from './components/FeedbackModal';
+import SettingsModal from './components/SettingsModal';
 import { evaluateModel } from './geminiService';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Settings } from 'lucide-react';
+import { canUseEvaluate, incrementEvaluate, getQuota, QuotaData } from './utils/quotaService';
 
 const STORAGE_KEY = 'data-modeler-tutor-state';
 
@@ -19,6 +21,8 @@ const App: React.FC = () => {
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [quota, setQuota] = useState<QuotaData>(getQuota());
 
   // Carregar estado inicial do localStorage
   useEffect(() => {
@@ -72,11 +76,18 @@ const App: React.FC = () => {
       alert("Crie ao menos uma entidade para avaliar!");
       return;
     }
-    
+
+    if (!canUseEvaluate()) {
+      alert("Você atingiu o limite diário de avaliações. Tente novamente amanhã ou configure sua própria chave da API.");
+      return;
+    }
+
     setIsEvaluating(true);
     try {
       const result = await evaluateModel({ entities, relationships, caseStudy });
       setEvaluation(result);
+      incrementEvaluate();
+      setQuota(getQuota()); // Update state to reflect new token count
     } catch (error: any) {
       console.error(error);
       if (error.message?.includes('429')) {
@@ -94,14 +105,14 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       {view === 'home' ? (
-        <Home 
-          onStart={handleStartModeling} 
-          onImport={handleImportModel} 
+        <Home
+          onStart={handleStartModeling}
+          onImport={handleImportModel}
           onContinue={() => setView('sandbox')}
           hasActiveModel={entities.length > 0 || caseStudy.trim() !== ''}
         />
       ) : (
-        <Sandbox 
+        <Sandbox
           caseStudy={caseStudy}
           entities={entities}
           setEntities={setEntities}
@@ -110,13 +121,35 @@ const App: React.FC = () => {
           onEvaluate={handleEvaluate}
           isEvaluating={isEvaluating}
           onBack={() => setView('home')}
+          quota={quota}
+          onQuotaUpdate={() => setQuota(getQuota())}
         />
       )}
 
       {evaluation && (
-        <EvaluationModal 
-          result={evaluation} 
-          onClose={() => setEvaluation(null)} 
+        <EvaluationModal
+          result={evaluation}
+          onClose={() => setEvaluation(null)}
+        />
+      )}
+
+      {/* Floating Settings Button */}
+      <button
+        onClick={() => setShowSettingsModal(true)}
+        className="fixed bottom-24 left-6 z-50 p-4 bg-slate-800 hover:bg-slate-900 text-white rounded-full shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 group flex items-center gap-2"
+        title="Configurações de IA"
+      >
+        <Settings className="w-6 h-6" />
+        <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-300 ease-in-out whitespace-nowrap font-bold text-sm">
+          Ajustes IA
+        </span>
+      </button>
+
+      {/* Settings Modal */}
+      {showSettingsModal && (
+        <SettingsModal
+          onClose={() => setShowSettingsModal(false)}
+          onSave={() => setQuota(getQuota())}
         />
       )}
 

@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { Network, Rocket, Sparkles, ChevronDown, Loader2, Upload, ArrowRight } from 'lucide-react';
 import { generateScenario, Difficulty } from '../geminiService';
 import { ModelData } from '../types';
+import { canUseScenario, incrementScenario, getQuota, MAX_SCENARIO_USES } from '../utils/quotaService';
 
 interface HomeProps {
   onStart: (text: string) => void;
@@ -16,6 +17,7 @@ const Home: React.FC<HomeProps> = ({ onStart, onImport, onContinue, hasActiveMod
   const [isGenerating, setIsGenerating] = useState(false);
   const [showDifficultyMenu, setShowDifficultyMenu] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [quota, setQuota] = useState(getQuota());
 
   const examples = [
     "Um sistema de biblioteca precisa gerenciar livros, autores e empréstimos. Cada livro tem um título e ISBN. Um autor pode escrever vários livros. Um usuário pode fazer vários empréstimos.",
@@ -23,11 +25,18 @@ const Home: React.FC<HomeProps> = ({ onStart, onImport, onContinue, hasActiveMod
   ];
 
   const handleGenerate = async (diff: Difficulty) => {
+    if (!canUseScenario()) {
+      alert("Você atingiu o limite de gerações de cenários diário (5 usos). Tente novamente amanhã ou configure sua chave de API.");
+      return;
+    }
+
     setIsGenerating(true);
     setShowDifficultyMenu(false);
     try {
       const scenario = await generateScenario(diff);
       setInput(scenario);
+      incrementScenario();
+      setQuota(getQuota());
     } catch (error: any) {
       console.error(error);
       alert("Erro ao gerar cenário. Verifique sua chave API ou conexão.");
@@ -63,12 +72,12 @@ const Home: React.FC<HomeProps> = ({ onStart, onImport, onContinue, hasActiveMod
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-20 flex flex-col items-center text-center">
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        onChange={handleFileChange} 
-        accept=".json" 
-        className="hidden" 
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept=".json"
+        className="hidden"
       />
       <div className="bg-blue-600 p-4 rounded-2xl mb-8 shadow-xl shadow-blue-200">
         <Network className="w-12 h-12 text-white" />
@@ -85,7 +94,7 @@ const Home: React.FC<HomeProps> = ({ onStart, onImport, onContinue, hasActiveMod
           <label className="text-left text-sm font-semibold text-slate-700 uppercase tracking-wider">
             Insira o Estudo de Caso (Cenário)
           </label>
-          
+
           <div className="flex items-center gap-2">
             <button
               onClick={handleImportClick}
@@ -99,7 +108,7 @@ const Home: React.FC<HomeProps> = ({ onStart, onImport, onContinue, hasActiveMod
             <div className="relative">
               <button
                 onClick={() => setShowDifficultyMenu(!showDifficultyMenu)}
-                disabled={isGenerating}
+                disabled={isGenerating || quota.scenarioUses >= MAX_SCENARIO_USES}
                 className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-xs font-bold hover:bg-amber-100 transition-all disabled:opacity-50"
               >
                 {isGenerating ? (
@@ -107,7 +116,10 @@ const Home: React.FC<HomeProps> = ({ onStart, onImport, onContinue, hasActiveMod
                 ) : (
                   <Sparkles className="w-3.5 h-3.5" />
                 )}
-                {isGenerating ? 'Gerando...' : 'Gerar Cenário'}
+                <div className="flex flex-col items-start leading-tight">
+                  <span>{isGenerating ? 'Gerando...' : 'Gerar Cenário'}</span>
+                  <span className="text-[9px] opacity-80 font-normal">({quota.scenarioUses}/{MAX_SCENARIO_USES})</span>
+                </div>
                 <ChevronDown className={`w-3 h-3 transition-transform ${showDifficultyMenu ? 'rotate-180' : ''}`} />
               </button>
 
@@ -156,7 +168,7 @@ const Home: React.FC<HomeProps> = ({ onStart, onImport, onContinue, hasActiveMod
           placeholder="Ex: Uma oficina mecânica deseja um banco de dados para gerenciar ordens de serviço..."
           className="w-full h-48 p-5 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all resize-none text-slate-800 text-lg"
         />
-        
+
         <div className="mt-4 flex flex-wrap gap-2 mb-8">
           <span className="text-sm text-slate-500 py-1">Exemplos:</span>
           {examples.map((ex, i) => (
