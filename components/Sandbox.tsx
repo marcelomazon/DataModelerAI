@@ -15,7 +15,7 @@ import { toPng } from 'html-to-image';
 import SQLModal from './SQLModal';
 import DataDictionaryModal from './DataDictionaryModal';
 import OccurrenceModal from './OccurrenceModal';
-import { canUseMentor, incrementMentor, MAX_MENTOR_USES, MAX_EVALUATE_USES, canUseSQL, incrementSQL, MAX_SQL_USES, QuotaData } from '../utils/quotaService';
+import { canUseMentor, incrementMentor, MAX_MENTOR_USES, canUseEvaluate, MAX_EVALUATE_USES, canUseSQL, incrementSQL, MAX_SQL_USES, QuotaData } from '../utils/quotaService';
 
 interface SandboxProps {
   caseStudy: string;
@@ -354,7 +354,7 @@ const Sandbox: React.FC<SandboxProps> = ({
           <div className="relative" ref={dbMenuRef}>
             <button
               onClick={() => !isGeneratingSQL && setShowDBMenu(!showDBMenu)}
-              disabled={isGeneratingSQL || quota.sqlUses >= MAX_SQL_USES}
+              disabled={isGeneratingSQL || !canUseSQL()}
               title="Gerar script SQL DDL"
               className="p-2 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-2 hover:bg-slate-100 transition-colors disabled:opacity-50"
             >
@@ -391,7 +391,7 @@ const Sandbox: React.FC<SandboxProps> = ({
             <Download className="w-4 h-4 text-slate-600" />
             <span className="hidden lg:inline text-xs font-bold text-slate-600">Exportar</span>
           </button>
-          <button onClick={onEvaluate} disabled={isEvaluating || quota.evaluateUses >= MAX_EVALUATE_USES} className="flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-md disabled:opacity-50 transition-all">
+          <button onClick={onEvaluate} disabled={isEvaluating || !canUseEvaluate()} className="flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-md disabled:opacity-50 transition-all">
             {isEvaluating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
             Avaliar Modelo <span className="text-[10px] ml-1 opacity-80">({quota.evaluateUses}/{MAX_EVALUATE_USES})</span>
           </button>
@@ -472,7 +472,7 @@ const Sandbox: React.FC<SandboxProps> = ({
                   <span className="text-[10px] font-black text-amber-700 uppercase flex items-center gap-1.5 tracking-widest"><Lightbulb className="w-3.5 h-3.5" /> Mentor IA</span>
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-bold text-amber-600 opacity-80">({quota.mentorUses}/{MAX_MENTOR_USES})</span>
-                    <button onClick={handleGetHint} disabled={isGettingHint || quota.mentorUses >= MAX_MENTOR_USES} className="text-[9px] font-black text-amber-600 hover:underline disabled:opacity-50 px-2 py-1 bg-white rounded-lg border border-amber-100">Pedir Dica</button>
+                    <button onClick={handleGetHint} disabled={isGettingHint || !canUseMentor()} className="text-[9px] font-black text-amber-600 hover:underline disabled:opacity-50 px-2 py-1 bg-white rounded-lg border border-amber-100">Pedir Dica</button>
                   </div>
                 </div>
                 <p className="text-[11px] text-amber-800 italic leading-snug">

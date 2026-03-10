@@ -108,7 +108,7 @@ const Home: React.FC<HomeProps> = ({ onStart, onImport, onContinue, hasActiveMod
             <div className="relative">
               <button
                 onClick={() => setShowDifficultyMenu(!showDifficultyMenu)}
-                disabled={isGenerating || quota.scenarioUses >= MAX_SCENARIO_USES}
+                disabled={isGenerating || !canUseScenario()}
                 className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-xs font-bold hover:bg-amber-100 transition-all disabled:opacity-50"
               >
                 {isGenerating ? (
