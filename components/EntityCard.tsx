@@ -9,6 +9,7 @@ interface EntityCardProps {
   isLinking: boolean;
   isExporting: boolean;
   onClick: () => void;
+  onDoubleClick: () => void;
   onUpdate: (data: Partial<Entity>) => void;
   onDelete: () => void;
   onStartLink: () => void;
@@ -26,7 +27,7 @@ const CATEGORIES: { id: AttributeCategory; label: string; icon: any; color: stri
 ];
 
 const EntityCard: React.FC<EntityCardProps> = ({ 
-  entity, isSelected, isLinking, isExporting, onClick, onUpdate, onDelete, onStartLink, canvasRef, zoom = 1, useSnap = true
+  entity, isSelected, isLinking, isExporting, onClick, onDoubleClick, onUpdate, onDelete, onStartLink, canvasRef, zoom = 1, useSnap = true
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [newAttrName, setNewAttrName] = useState('');
@@ -177,6 +178,7 @@ const EntityCard: React.FC<EntityCardProps> = ({
       } ${isLinking && !isExporting ? 'border-blue-500 animate-pulse' : ''}`}
       style={{ left: entity.position.x, top: entity.position.y, boxSizing: 'border-box' }}
       onClick={(e) => { e.stopPropagation(); !isExporting && onClick(); }}
+      onDoubleClick={(e) => { e.stopPropagation(); !isExporting && onDoubleClick(); }}
     >
       <div 
         className={`px-[12px] py-[8px] border-b flex items-center justify-between cursor-move rounded-t-lg transition-colors h-[37px] ${isSelected && !isExporting ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-800'}`}

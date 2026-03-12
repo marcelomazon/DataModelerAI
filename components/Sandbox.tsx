@@ -496,6 +496,12 @@ const Sandbox: React.FC<SandboxProps> = ({
                     setLinkStartId(null);
                   } else setSelectedEntityId(entity.id);
                 }}
+                onDoubleClick={() => {
+                  if (!isLinking) {
+                    setSelectedEntityId(entity.id);
+                    setShowOccurrenceModal(true);
+                  }
+                }}
                 onUpdate={(data) => setEntities(prev => prev.map(e => e.id === entity.id ? { ...e, ...data } : e))}
                 onDelete={() => setEntities(prev => prev.filter(e => e.id !== entity.id))}
                 onStartLink={() => { setIsLinking(true); setLinkStartId(entity.id); }}
