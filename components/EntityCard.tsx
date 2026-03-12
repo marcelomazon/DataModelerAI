@@ -209,7 +209,7 @@ const EntityCard: React.FC<EntityCardProps> = ({
               onMouseDown={(e) => e.stopPropagation()}
             />
           ) : (
-            <span className="font-bold truncate text-sm flex items-center gap-[6px]" onDoubleClick={() => !isExporting && setIsEditingName(true)}>
+            <span className="font-bold truncate text-sm flex items-center gap-[6px]" onDoubleClick={(e) => { e.stopPropagation(); !isExporting && setIsEditingName(true); }}>
               {entity.name}
               {(entity.isCollapsed || isExporting) && entity.attributes.length > 0 && (
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isSelected && !isExporting ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-500'}`}>
