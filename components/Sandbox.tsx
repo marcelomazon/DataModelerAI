@@ -184,7 +184,7 @@ const Sandbox: React.FC<SandboxProps> = ({
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 0 && e.target === e.currentTarget) {
+    if (e.button === 0 && (e.target === e.currentTarget || (e.target as HTMLElement).classList.contains('canvas-bg-target'))) {
       setIsPanning(true);
       setPanStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
     }
@@ -485,7 +485,7 @@ const Sandbox: React.FC<SandboxProps> = ({
 
         <main ref={mainAreaRef} className="flex-1 bg-slate-100 relative overflow-hidden cursor-grab active:cursor-grabbing" onMouseDown={handleMouseDown}>
           <div className="absolute inset-0 canvas-grid pointer-events-none" style={{ backgroundPosition: `${transform.x}px ${transform.y}px`, backgroundSize: `${20 * transform.k}px ${20 * transform.k}px` }} />
-          <div ref={canvasRef} className="absolute inset-0 origin-top-left" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.k})` }}>
+          <div ref={canvasRef} className="absolute inset-0 origin-top-left canvas-bg-target" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.k})` }}>
             {entities.map(entity => (
               <EntityCard
                 key={entity.id} entity={entity} isSelected={selectedEntityId === entity.id} isLinking={isLinking && linkStartId === entity.id} isExporting={isExporting}
@@ -502,7 +502,7 @@ const Sandbox: React.FC<SandboxProps> = ({
                 canvasRef={canvasRef} zoom={transform.k} useSnap={useSnap}
               />
             ))}
-            <svg className="absolute inset-0 w-[10000px] h-[10000px] pointer-events-none overflow-visible">
+            <svg className="absolute inset-0 w-[10000px] h-[10000px] pointer-events-none overflow-visible canvas-bg-target">
               {relationships.map(rel => {
                 const from = entities.find(e => e.id === rel.fromId);
                 const to = entities.find(e => e.id === rel.toId);

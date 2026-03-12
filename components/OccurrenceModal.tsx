@@ -169,8 +169,9 @@ const OccurrenceModal: React.FC<OccurrenceModalProps> = ({ entity, entities, rel
                       {entity.attributes.map((attr, idx) => (
                         <th key={idx} className="p-3 text-xs font-black text-slate-600 uppercase tracking-wider min-w-[150px] border-r border-slate-100 last:border-r-0">
                           <div className="flex items-center gap-1.5">
-                            {attr.isPK && <span className="text-amber-500 text-[10px]">(PK)</span>}
                             {attr.name}
+                            {attr.isPK && <span className="text-amber-500 text-[10px]">(PK)</span>}
+                            {attr.category === 'referential' && <span className="text-emerald-500 text-[10px]">(FK)</span>}
                           </div>
                         </th>
                       ))}
