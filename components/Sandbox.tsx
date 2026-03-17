@@ -273,6 +273,14 @@ const Sandbox: React.FC<SandboxProps> = ({
         let content = `ESTUDO DE CASO:\n${caseStudy}\n\nENTIDADES:\n`;
         entities.forEach(e => {
           content += `- ${e.name}: ${e.attributes.map(a => a.name + (a.isPK ? '(PK)' : '')).join(', ')}\n`;
+          
+          if (e.data && e.data.length > 0) {
+            content += `  Ocorrências (Dados Cadastrados):\n`;
+            e.data.forEach((row, index) => {
+              const rowData = e.attributes.map(a => `${a.name}: ${row[a.name] || 'N/A'}`).join(' | ');
+              content += `    Registro ${index + 1}: ${rowData}\n`;
+            });
+          }
         });
         const blob = new Blob([content], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
