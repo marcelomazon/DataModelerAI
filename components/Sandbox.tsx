@@ -273,7 +273,7 @@ const Sandbox: React.FC<SandboxProps> = ({
         let content = `ESTUDO DE CASO:\n${caseStudy}\n\nENTIDADES:\n`;
         entities.forEach(e => {
           content += `- ${e.name}: ${e.attributes.map(a => a.name + (a.isPK ? '(PK)' : '')).join(', ')}\n`;
-          
+
           if (e.data && e.data.length > 0) {
             content += `  Ocorrências (Dados Cadastrados):\n`;
             e.data.forEach((row, index) => {
@@ -290,12 +290,44 @@ const Sandbox: React.FC<SandboxProps> = ({
         a.click();
         URL.revokeObjectURL(url);
       } else if (exportType === 'png' && canvasRef.current) {
+        if (entities.length === 0) {
+          alert('Adicione pelo menos uma entidade ao modelo antes de exportar.');
+          setIsExporting(false);
+          return;
+        }
+
+        const padding = 100;
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        entities.forEach(e => {
+          minX = Math.min(minX, e.position.x);
+          minY = Math.min(minY, e.position.y);
+          maxX = Math.max(maxX, e.position.x + 280); // Largura aproximada do EntityCard
+          maxY = Math.max(maxY, e.position.y + 350); // Altura aproximada
+        });
+
+        if (!isFinite(minX)) minX = 0;
+        if (!isFinite(minY)) minY = 0;
+        if (!isFinite(maxX)) maxX = 800;
+        if (!isFinite(maxY)) maxY = 600;
+
+        const expWidth = maxX - minX + padding * 2;
+        const expHeight = maxY - minY + padding * 2;
+
         const dataUrl = await toPng(canvasRef.current, {
           backgroundColor: '#f1f5f9',
-          style: { transform: 'none', left: '0', top: '0', position: 'relative' },
-          width: Math.max(...entities.map(e => e.position.x + 300)) + 100,
-          height: Math.max(...entities.map(e => e.position.y + 400)) + 100,
-          filter: (node) => !node.classList?.contains('no-export')
+          style: {
+            transform: `translate(${-minX + padding}px, ${-minY + padding}px) scale(1)`,
+            transformOrigin: 'top left',
+            left: '0',
+            top: '0',
+            width: `${expWidth}px`,
+            height: `${expHeight}px`,
+            position: 'absolute'
+          },
+          width: expWidth,
+          height: expHeight,
+          pixelRatio: 2, // Melhor resolução
+          filter: (node) => !node.classList?.contains('no-export') && node.tagName !== 'foreignObject'
         });
         const link = document.createElement('a');
         link.download = `${exportFileName}.png`;
@@ -516,7 +548,7 @@ const Sandbox: React.FC<SandboxProps> = ({
                 canvasRef={canvasRef} zoom={transform.k} useSnap={useSnap}
               />
             ))}
-            <svg className="absolute inset-0 w-[10000px] h-[10000px] pointer-events-none overflow-visible canvas-bg-target">
+            <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible canvas-bg-target">
               {relationships.map(rel => {
                 const from = entities.find(e => e.id === rel.fromId);
                 const to = entities.find(e => e.id === rel.toId);
@@ -549,10 +581,36 @@ const Sandbox: React.FC<SandboxProps> = ({
               <input type="text" value={exportFileName} onChange={(e) => setExportFileName(e.target.value)} className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-5 py-4 font-bold outline-none focus:border-blue-500 transition-all" />
             </div>
             <label className="block text-xs font-black text-slate-500 uppercase mb-3">Formato de Saída</label>
-            <div className="grid grid-cols-3 gap-3 mb-8">
-              <button onClick={() => setExportType('json')} className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${exportType === 'json' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-50 text-slate-500 hover:border-slate-200'}`}><FileJson className="w-6 h-6" /><span className="text-[10px] font-black uppercase">JSON</span></button>
-              <button onClick={() => setExportType('png')} className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${exportType === 'png' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-50 text-slate-500 hover:border-slate-200'}`}><ImageIcon className="w-6 h-6" /><span className="text-[10px] font-black uppercase">PNG</span></button>
-              <button onClick={() => setExportType('txt')} className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${exportType === 'txt' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-50 text-slate-500 hover:border-slate-200'}`}><FileText className="w-6 h-6" /><span className="text-[10px] font-black uppercase">Texto</span></button>
+            <div className="flex flex-col gap-3 mb-8">
+              <button onClick={() => setExportType('json')} className={`p-4 rounded-2xl border-2 flex items-center justify-between text-left transition-all ${exportType === 'json' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-50 text-slate-600 hover:border-slate-200'}`}>
+                <div className="flex items-center gap-4">
+                  <div className={`p-2 rounded-xl flex-shrink-0 ${exportType === 'json' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'}`}><FileJson className="w-6 h-6" /></div>
+                  <div>
+                    <span className="block text-sm font-black uppercase mb-0.5">JSON</span>
+                    <span className="block text-[11px] opacity-80 leading-tight">Formato estruturado. Ideal para salvar, importar e continuar editando depois.</span>
+                  </div>
+                </div>
+              </button>
+
+              <button onClick={() => setExportType('png')} className={`p-4 rounded-2xl border-2 flex items-center justify-between text-left transition-all ${exportType === 'png' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-50 text-slate-600 hover:border-slate-200'}`}>
+                <div className="flex items-center gap-4">
+                  <div className={`p-2 rounded-xl flex-shrink-0 ${exportType === 'png' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'}`}><ImageIcon className="w-6 h-6" /></div>
+                  <div>
+                    <span className="block text-sm font-black uppercase mb-0.5">PNG</span>
+                    <span className="block text-[11px] opacity-80 leading-tight">Imagem do diagrama visível para documentações.</span>
+                  </div>
+                </div>
+              </button>
+
+              <button onClick={() => setExportType('txt')} className={`p-4 rounded-2xl border-2 flex items-center justify-between text-left transition-all ${exportType === 'txt' ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-50 text-slate-600 hover:border-slate-200'}`}>
+                <div className="flex items-center gap-4">
+                  <div className={`p-2 rounded-xl flex-shrink-0 ${exportType === 'txt' ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'}`}><FileText className="w-6 h-6" /></div>
+                  <div>
+                    <span className="block text-sm font-black uppercase mb-0.5">Texto</span>
+                    <span className="block text-[11px] opacity-80 leading-tight">Resumo em texto legível das entidades, atributos e dados de ocorrência.</span>
+                  </div>
+                </div>
+              </button>
             </div>
             <button onClick={handleFinalExport} className="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase shadow-xl transition-all transform active:scale-[0.98]">Baixar Arquivo</button>
           </div>
