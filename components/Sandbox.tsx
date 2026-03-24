@@ -530,7 +530,7 @@ const Sandbox: React.FC<SandboxProps> = ({
               <EntityCard
                 key={entity.id} entity={entity} isSelected={selectedEntityId === entity.id} isLinking={isLinking && linkStartId === entity.id} isExporting={isExporting}
                 onClick={() => {
-                  if (isLinking && linkStartId && linkStartId !== entity.id) {
+                  if (isLinking && linkStartId) {
                     setRelationships(prev => [...prev, { id: Math.random().toString(36).substr(2, 9), fromId: linkStartId, toId: entity.id, cardinality: '1:N', controlPointOffset: { x: 0, y: 0 } }]);
                     setIsLinking(false);
                     setLinkStartId(null);

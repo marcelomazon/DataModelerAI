@@ -122,7 +122,7 @@ const RelationshipLine: React.FC<RelationshipLineProps> = ({
     else p1 = { x: from.position.x + CARD_WIDTH / 2 + offsetFrom, y: from.position.y + h1 + offS };
 
     if (isSelf) {
-      p2 = { x: to.position.x + CARD_WIDTH + offE, y: to.position.y + 20 + offsetTo };
+      p2 = { x: to.position.x + CARD_WIDTH + offE, y: to.position.y + 35 + offsetTo };
     } else {
       if (faceTo === 'right') p2 = { x: to.position.x + CARD_WIDTH + offE, y: to.position.y + h2 / 2 + offsetTo };
       else if (faceTo === 'left') p2 = { x: to.position.x - offE, y: to.position.y + h2 / 2 + offsetTo };
@@ -206,7 +206,7 @@ const RelationshipLine: React.FC<RelationshipLineProps> = ({
 
       {!isExporting && (
         <g className={`opacity-0 group-hover:opacity-100 transition-opacity`}>
-          <foreignObject x={mid.x - 20} y={mid.y - 30} width="40" height="40" className="pointer-events-none">
+          <foreignObject x={mid.x - 20} y={mid.y - 45} width="40" height="40" className="pointer-events-none">
             <div className="flex justify-center pointer-events-auto">
               <button onClick={() => onDelete(rel.id)} className="p-2 bg-white border border-red-100 text-red-500 rounded-full shadow-lg hover:bg-red-500 hover:text-white transition-all transform hover:scale-110">
                 <Trash2 className="w-3 h-3" />
@@ -224,13 +224,13 @@ const RelationshipLine: React.FC<RelationshipLineProps> = ({
       >
         {!isEditingName || isExporting ? (
           <>
-            <rect x={mid.x - labelWidth / 2} y={mid.y + 14} width={labelWidth} height={22} rx="11" fill="white" stroke="#e2e8f0" strokeWidth="1" className="shadow-sm transition-colors group-hover:stroke-blue-300" />
-            <text x={mid.x} y={mid.y + 26} textAnchor="middle" dominantBaseline="middle" fill="#475569" fontSize="10" fontWeight="900" className="select-none tracking-tighter transition-colors group-hover:fill-blue-600">
+            <rect x={mid.x - labelWidth / 2} y={mid.y - 11} width={labelWidth} height={22} rx="11" fill="white" stroke="#e2e8f0" strokeWidth="1" className="shadow-sm transition-colors group-hover:stroke-blue-300" />
+            <text x={mid.x} y={mid.y + 1} textAnchor="middle" dominantBaseline="middle" fill="#475569" fontSize="10" fontWeight="900" className="select-none tracking-tighter transition-colors group-hover:fill-blue-600">
               {labelText}
             </text>
 
             {showPopover && !isExporting && (
-              <foreignObject x={mid.x - 70} y={mid.y + 36} width="140" height="60" className="pointer-events-none overflow-visible">
+              <foreignObject x={mid.x - 70} y={mid.y + 11} width="140" height="60" className="pointer-events-none overflow-visible">
                 <div
                   className="flex flex-col items-center animate-in fade-in slide-in-from-top-1 duration-150 pointer-events-auto"
                   onMouseEnter={handleMouseEnter}
@@ -258,7 +258,7 @@ const RelationshipLine: React.FC<RelationshipLineProps> = ({
             )}
           </>
         ) : (
-          <foreignObject x={mid.x - 60} y={mid.y + 12} width="120" height="32">
+          <foreignObject x={mid.x - 60} y={mid.y - 16} width="120" height="32">
             <div className="flex items-center bg-white border-2 border-blue-500 rounded-lg shadow-xl px-2">
               <Edit3 className="w-3 h-3 text-blue-400 mr-1" />
               <input
