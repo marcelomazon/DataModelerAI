@@ -87,7 +87,22 @@ const RelationshipLine: React.FC<RelationshipLineProps> = ({
           if (!ent || !other) return false;
           return getFace(ent, other) === face;
         })
-        .sort((a, b) => a.id.localeCompare(b.id));
+        .sort((a, b) => {
+          const getOtherPos = (r: Relationship) => {
+            const otherId = r.fromId === entityId ? r.toId : r.fromId;
+            const other = entities.find(e => e.id === otherId);
+            return other ? other.position : { x: 0, y: 0 };
+          };
+          const posA = getOtherPos(a);
+          const posB = getOtherPos(b);
+          if (face === 'left' || face === 'right') {
+            const diff = posA.y - posB.y;
+            return diff !== 0 ? diff : a.id.localeCompare(b.id);
+          } else {
+            const diff = posA.x - posB.x;
+            return diff !== 0 ? diff : a.id.localeCompare(b.id);
+          }
+        });
     };
 
     const groupFrom = getFaceGroup(from.id, faceFrom);
