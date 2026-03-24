@@ -5,6 +5,7 @@ import { Entity, Attribute, AttributeCategory } from '../types';
 
 interface EntityCardProps {
   entity: Entity;
+  entities: Entity[];
   isSelected: boolean;
   isLinking: boolean;
   isExporting: boolean;
@@ -27,11 +28,12 @@ const CATEGORIES: { id: AttributeCategory; label: string; icon: any; color: stri
 ];
 
 const EntityCard: React.FC<EntityCardProps> = ({ 
-  entity, isSelected, isLinking, isExporting, onClick, onDoubleClick, onUpdate, onDelete, onStartLink, canvasRef, zoom = 1, useSnap = true
+  entity, entities, isSelected, isLinking, isExporting, onClick, onDoubleClick, onUpdate, onDelete, onStartLink, canvasRef, zoom = 1, useSnap = true
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [newAttrName, setNewAttrName] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
+  const [editingNameValue, setEditingNameValue] = useState('');
   const [editingAttrIndex, setEditingAttrIndex] = useState<number | null>(null);
   const [editingAttrValue, setEditingAttrValue] = useState('');
   const [openCategoryMenuIdx, setOpenCategoryMenuIdx] = useState<number | null>(null);
@@ -144,6 +146,26 @@ const EntityCard: React.FC<EntityCardProps> = ({
     }
   };
 
+  const saveEntityName = () => {
+    const trimmed = editingNameValue.trim();
+    if (!trimmed) {
+      alert("O nome da entidade é obrigatório.");
+      setEditingNameValue(entity.name);
+      setIsEditingName(false);
+      return;
+    }
+    
+    if (trimmed.toLowerCase() !== entity.name.toLowerCase() && entities.some(e => e.id !== entity.id && e.name.toLowerCase() === trimmed.toLowerCase())) {
+      alert("Já existe uma entidade com este nome no diagrama.");
+      setEditingNameValue(entity.name);
+      setIsEditingName(false);
+      return;
+    }
+    
+    onUpdate({ name: trimmed });
+    setIsEditingName(false);
+  };
+
   const toggleCollapse = (e: React.MouseEvent) => {
     e.stopPropagation();
     onUpdate({ isCollapsed: !entity.isCollapsed });
@@ -202,14 +224,20 @@ const EntityCard: React.FC<EntityCardProps> = ({
             <input
               autoFocus
               className="bg-white text-slate-800 px-2 h-6 rounded w-full outline-none text-xs font-bold"
-              value={entity.name}
-              onChange={(e) => onUpdate({ name: e.target.value })}
-              onBlur={() => setIsEditingName(false)}
-              onKeyDown={(e) => e.key === 'Enter' && setIsEditingName(false)}
+              value={editingNameValue}
+              onChange={(e) => setEditingNameValue(e.target.value)}
+              onBlur={saveEntityName}
+              onKeyDown={(e) => e.key === 'Enter' && saveEntityName()}
               onMouseDown={(e) => e.stopPropagation()}
             />
           ) : (
-            <span className="font-bold truncate text-sm flex items-center gap-[6px]" onDoubleClick={(e) => { e.stopPropagation(); !isExporting && setIsEditingName(true); }}>
+            <span className="font-bold truncate text-sm flex items-center gap-[6px]" onDoubleClick={(e) => { 
+                e.stopPropagation(); 
+                if (!isExporting) {
+                  setEditingNameValue(entity.name);
+                  setIsEditingName(true);
+                }
+              }}>
               {entity.name}
               {(entity.isCollapsed || isExporting) && entity.attributes.length > 0 && (
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isSelected && !isExporting ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-500'}`}>

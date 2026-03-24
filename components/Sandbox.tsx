@@ -100,7 +100,14 @@ const Sandbox: React.FC<SandboxProps> = ({
     }
   };
 
-  const addEntity = (name = 'Nova Entidade', attributeNames: string[] = []) => {
+  const addEntity = (baseName = 'Nova Entidade', attributeNames: string[] = []) => {
+    let name = baseName;
+    let counter = 1;
+    while (entities.some(e => e.name.toLowerCase() === name.toLowerCase())) {
+      name = `${baseName} ${counter}`;
+      counter++;
+    }
+
     const id = Math.random().toString(36).substr(2, 9);
     const attributes: Attribute[] = attributeNames.map(attrName => ({
       name: attrName.toLowerCase(),
@@ -528,7 +535,7 @@ const Sandbox: React.FC<SandboxProps> = ({
           <div ref={canvasRef} className="absolute inset-0 origin-top-left canvas-bg-target" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.k})` }}>
             {entities.map(entity => (
               <EntityCard
-                key={entity.id} entity={entity} isSelected={selectedEntityId === entity.id} isLinking={isLinking && linkStartId === entity.id} isExporting={isExporting}
+                key={entity.id} entity={entity} entities={entities} isSelected={selectedEntityId === entity.id} isLinking={isLinking && linkStartId === entity.id} isExporting={isExporting}
                 onClick={() => {
                   if (isLinking && linkStartId) {
                     setRelationships(prev => [...prev, { id: Math.random().toString(36).substr(2, 9), fromId: linkStartId, toId: entity.id, cardinality: '1:N', controlPointOffset: { x: 0, y: 0 } }]);
