@@ -79,7 +79,7 @@ export const evaluateModel = async (data: ModelData): Promise<EvaluationResult> 
   `;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3-pro-preview",
+    model: "gemini-3-flash-preview",
     contents: prompt,
     config: {
       systemInstruction: "Você é um professor brasileiro de banco de dados. Comunique-se EXCLUSIVAMENTE em Português do Brasil (pt-BR).",

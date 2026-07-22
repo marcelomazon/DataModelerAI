@@ -34,8 +34,15 @@ export const saveConfig = (config: AIConfig): void => {
 
 export const getActiveApiKey = (): string | undefined => {
     const config = getConfig();
+    console.log("DEBUG getActiveApiKey:", {
+        provider: config.provider,
+        hasConfigKey: !!config.apiKey,
+        envKeyExists: !!process.env.API_KEY,
+        envKeyLength: process.env.API_KEY ? process.env.API_KEY.length : 0,
+        envKeyPrefix: process.env.API_KEY ? process.env.API_KEY.substring(0, 7) : 'none'
+    });
     if (config.provider === 'default' || config.apiKey.trim() === '') {
-        return process.env.API_KEY;
+        return process.env.API_KEY?.trim();
     }
     return config.apiKey.trim();
 };
