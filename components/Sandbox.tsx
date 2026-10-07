@@ -5,7 +5,8 @@ import {
   Image as ImageIcon, FileText, Ban, ZoomIn, ZoomOut,
   Maximize, Grid3X3, Loader2, Database, BookOpen,
   Lightbulb, ChevronDown, Underline, Strikethrough,
-  Eraser, Type, Minus, Plus as PlusIcon, Copy, Bold, Table
+  Eraser, Type, Minus, Plus as PlusIcon, Copy, Bold, Table,
+  PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import { Entity, Relationship, Attribute } from '../types';
 import EntityCard from './EntityCard';
@@ -43,6 +44,7 @@ const Sandbox: React.FC<SandboxProps> = ({
   const [exportType, setExportType] = useState<ExportType>('json');
   const [isExporting, setIsExporting] = useState(false);
   const [useSnap, setUseSnap] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Estados para Formatação do Estudo de Caso
   const [formattedCaseStudy, setFormattedCaseStudy] = useState(caseStudy);
@@ -368,6 +370,18 @@ const Sandbox: React.FC<SandboxProps> = ({
           </div>
           <div className="h-8 w-px bg-slate-200 mx-1" />
 
+          <button
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className={`p-2.5 rounded-xl border transition-all shadow-sm flex items-center justify-center ${
+              isSidebarOpen
+                ? 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                : 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100'
+            }`}
+            title={isSidebarOpen ? "Ocultar Estudo de Caso" : "Exibir Estudo de Caso"}
+          >
+            {isSidebarOpen ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeftOpen className="w-5 h-5" />}
+          </button>
+
           {!isLinking ? (
             <div className="flex items-center gap-2">
               <button onClick={() => addEntity()} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition-all shadow-md active:scale-95">
@@ -446,8 +460,12 @@ const Sandbox: React.FC<SandboxProps> = ({
       </header>
 
       <div className="flex flex-1 overflow-hidden relative" ref={containerRef} onWheel={handleWheel}>
-        <aside className="w-80 bg-white border-r border-slate-200 flex flex-col hidden lg:block z-20 relative">
-          <div className="flex-1 overflow-y-auto p-6">
+        <aside
+          className={`bg-white border-r border-slate-200 flex flex-col z-20 relative transition-all duration-300 ease-in-out ${
+            isSidebarOpen ? 'w-80 opacity-100' : 'w-0 opacity-0 overflow-hidden pointer-events-none border-r-0'
+          }`}
+        >
+          <div className="w-80 flex-1 overflow-y-auto p-6 flex flex-col h-full">
             <div className="mb-8">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-slate-800 text-sm uppercase tracking-wider">Estudo de Caso</h3>
@@ -457,6 +475,9 @@ const Sandbox: React.FC<SandboxProps> = ({
                   </button>
                   <button onClick={() => navigator.clipboard.writeText(caseStudy)} title="Copiar texto original" className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-600 transition-all">
                     <Copy className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={() => setIsSidebarOpen(false)} title="Ocultar painel lateral" className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-red-500 transition-all">
+                    <PanelLeftClose className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
@@ -531,6 +552,15 @@ const Sandbox: React.FC<SandboxProps> = ({
         </aside>
 
         <main ref={mainAreaRef} className="flex-1 bg-slate-100 relative overflow-hidden cursor-grab active:cursor-grabbing" onMouseDown={handleMouseDown}>
+          {!isSidebarOpen && (
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="absolute top-4 left-4 z-30 p-2.5 bg-white/90 backdrop-blur-md border border-slate-200 text-slate-700 hover:text-blue-600 hover:bg-white rounded-xl shadow-md transition-all hover:scale-105 active:scale-95 group"
+              title="Exibir Estudo de Caso"
+            >
+              <PanelLeftOpen className="w-5 h-5 text-blue-600 group-hover:scale-110 transition-transform" />
+            </button>
+          )}
           <div className="absolute inset-0 canvas-grid pointer-events-none" style={{ backgroundPosition: `${transform.x}px ${transform.y}px`, backgroundSize: `${20 * transform.k}px ${20 * transform.k}px` }} />
           <div ref={canvasRef} className="absolute inset-0 origin-top-left canvas-bg-target" style={{ transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.k})` }}>
             {entities.map(entity => (
