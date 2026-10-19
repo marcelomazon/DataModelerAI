@@ -33,6 +33,9 @@ interface SandboxProps {
 
 type ExportType = 'json' | 'png' | 'txt';
 
+// TEMPORÁRIO: modo avaliação — desabilita Pedir Dica e Avaliar Modelo. Altere para false para reativar.
+const AI_ASSIST_DISABLED = true;
+
 const Sandbox: React.FC<SandboxProps> = ({
   caseStudy, entities, setEntities, relationships, setRelationships, onEvaluate, isEvaluating, onBack, quota, onQuotaUpdate
 }) => {
@@ -452,7 +455,7 @@ const Sandbox: React.FC<SandboxProps> = ({
             <Download className="w-4 h-4 text-slate-600" />
             <span className="hidden lg:inline text-xs font-bold text-slate-600">Exportar</span>
           </button>
-          <button onClick={onEvaluate} disabled={isEvaluating || !canUseEvaluate()} className="flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-md disabled:opacity-50 transition-all">
+          <button onClick={() => !AI_ASSIST_DISABLED && onEvaluate()} disabled={AI_ASSIST_DISABLED || isEvaluating || !canUseEvaluate()} title={AI_ASSIST_DISABLED ? "Desabilitado durante a avaliação" : undefined} className="flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-md disabled:opacity-50 transition-all">
             {isEvaluating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
             Avaliar Modelo <span className="text-[10px] ml-1 opacity-80">({quota.evaluateUses}/{MAX_EVALUATE_USES})</span>
           </button>
@@ -540,11 +543,11 @@ const Sandbox: React.FC<SandboxProps> = ({
                   <span className="text-[10px] font-black text-amber-700 uppercase flex items-center gap-1.5 tracking-widest"><Lightbulb className="w-3.5 h-3.5" /> Mentor IA</span>
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] font-bold text-amber-600 opacity-80">({quota.mentorUses}/{MAX_MENTOR_USES})</span>
-                    <button onClick={handleGetHint} disabled={isGettingHint || !canUseMentor()} className="text-[9px] font-black text-amber-600 hover:underline disabled:opacity-50 px-2 py-1 bg-white rounded-lg border border-amber-100">Pedir Dica</button>
+                    <button onClick={() => !AI_ASSIST_DISABLED && handleGetHint()} disabled={AI_ASSIST_DISABLED || isGettingHint || !canUseMentor()} title={AI_ASSIST_DISABLED ? "Desabilitado durante a avaliação" : undefined} className="text-[9px] font-black text-amber-600 hover:underline disabled:opacity-50 px-2 py-1 bg-white rounded-lg border border-amber-100">Pedir Dica</button>
                   </div>
                 </div>
                 <p className="text-[11px] text-amber-800 italic leading-snug">
-                  {isGettingHint ? "Analisando seu progresso..." : activeHint || "Dificuldades? Peça uma dica para a IA analisar seu modelo."}
+                  {AI_ASSIST_DISABLED ? "Dicas da IA desabilitadas durante a avaliação." : isGettingHint ? "Analisando seu progresso..." : activeHint || "Dificuldades? Peça uma dica para a IA analisar seu modelo."}
                 </p>
               </div>
             </div>
