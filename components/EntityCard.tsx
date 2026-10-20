@@ -32,6 +32,8 @@ const EntityCard: React.FC<EntityCardProps> = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [newAttrName, setNewAttrName] = useState('');
+  const [isAddingAttr, setIsAddingAttr] = useState(false);
+  const newAttrInputRef = useRef<HTMLInputElement>(null);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editingNameValue, setEditingNameValue] = useState('');
   const [editingAttrIndex, setEditingAttrIndex] = useState<number | null>(null);
@@ -102,12 +104,33 @@ const EntityCard: React.FC<EntityCardProps> = ({
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  const addAttribute = (e: React.FormEvent) => {
-    e.preventDefault();
+  const commitNewAttribute = () => {
     if (newAttrName.trim()) {
       const newAttr: Attribute = { name: newAttrName.trim().toLowerCase(), isPK: false, category: 'descriptive' };
       onUpdate({ attributes: [...entity.attributes, newAttr] });
       setNewAttrName('');
+      return true;
+    }
+    return false;
+  };
+
+  const cancelNewAttribute = () => {
+    setIsAddingAttr(false);
+    setNewAttrName('');
+  };
+
+  // Botão flutuante "+": abre o input; se já aberto, confirma (ou fecha se vazio)
+  const handleFloatingAddClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isAddingAttr) {
+      if (entity.isCollapsed) onUpdate({ isCollapsed: false });
+      setIsAddingAttr(true);
+      return;
+    }
+    if (commitNewAttribute()) {
+      newAttrInputRef.current?.focus();
+    } else {
+      cancelNewAttribute();
     }
   };
 
@@ -370,26 +393,39 @@ const EntityCard: React.FC<EntityCardProps> = ({
                 </div>
               );
             })}
-          </div>
-          
-          {!isExporting && (
-            <form 
-              onSubmit={addAttribute} 
-              className="flex gap-2 mt-[12px] pt-[12px] mb-0 border-t border-slate-100 no-export"
-              style={{ boxSizing: 'border-box' }}
-            >
+            {isAddingAttr && !isExporting && (
               <input
-                placeholder="Novo Atributo..."
-                className="min-w-0 flex-1 h-[32px] text-[11px] font-medium border border-slate-200 rounded-xl px-3 outline-none focus:border-blue-400 transition-all"
+                ref={newAttrInputRef}
+                autoFocus
+                placeholder="Novo atributo... (Enter)"
+                className="no-export w-full h-[27px] text-[11px] font-medium bg-white border border-blue-400 ring-2 ring-blue-100 rounded-lg px-[8px] outline-none"
                 value={newAttrName}
                 onChange={(e) => setNewAttrName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') { e.preventDefault(); commitNewAttribute(); }
+                  else if (e.key === 'Escape') cancelNewAttribute();
+                }}
+                onBlur={() => { if (!newAttrName.trim()) cancelNewAttribute(); }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
               />
-              <button type="submit" disabled={!newAttrName.trim()} className="shrink-0 w-[32px] h-[32px] bg-slate-50 hover:bg-blue-600 hover:text-white text-slate-400 rounded-xl transition-all shadow-sm flex items-center justify-center border border-slate-100">
-                <Plus className="w-4 h-4" />
-              </button>
-            </form>
-          )}
+            )}
+          </div>
         </div>
+      )}
+
+      {!isExporting && (
+        <button
+          type="button"
+          onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
+          onClick={handleFloatingAddClick}
+          title={isAddingAttr ? (newAttrName.trim() ? 'Confirmar atributo' : 'Fechar') : 'Adicionar atributo'}
+          className={`no-export absolute -bottom-3 -right-3 z-10 w-7 h-7 rounded-full flex items-center justify-center shadow-md border-2 border-white transition-all hover:scale-110 active:scale-95 ${
+            isAddingAttr ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'
+          }`}
+        >
+          <Plus className={`w-4 h-4 transition-transform ${isAddingAttr && !newAttrName.trim() ? 'rotate-45' : ''}`} />
+        </button>
       )}
     </div>
   );
