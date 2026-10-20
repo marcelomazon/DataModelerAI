@@ -64,6 +64,11 @@ const Sandbox: React.FC<SandboxProps> = ({
   const [selectedDB, setSelectedDB] = useState<DatabaseType>('mysql');
   const [isGettingHint, setIsGettingHint] = useState(false);
   const [activeHint, setActiveHint] = useState<string | null>(null);
+  const [cardHeights, setCardHeights] = useState<Record<string, number>>({});
+
+  const handleCardHeightChange = useCallback((id: string, height: number) => {
+    setCardHeights(prev => (prev[id] === height ? prev : { ...prev, [id]: height }));
+  }, []);
 
   const [transform, setTransform] = useState({ x: 0, y: 0, k: 1 });
   const [isPanning, setIsPanning] = useState(false);
@@ -586,6 +591,7 @@ const Sandbox: React.FC<SandboxProps> = ({
                 onDelete={() => setEntities(prev => prev.filter(e => e.id !== entity.id))}
                 onStartLink={() => { setIsLinking(true); setLinkStartId(entity.id); }}
                 canvasRef={canvasRef} zoom={transform.k} useSnap={useSnap}
+                onHeightChange={(h) => handleCardHeightChange(entity.id, h)}
               />
             ))}
             <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible canvas-bg-target">
@@ -593,7 +599,7 @@ const Sandbox: React.FC<SandboxProps> = ({
                 const from = entities.find(e => e.id === rel.fromId);
                 const to = entities.find(e => e.id === rel.toId);
                 if (!from || !to) return null;
-                return (<RelationshipLine key={rel.id} from={from} to={to} rel={rel} entities={entities} relationships={relationships} isExporting={isExporting} onUpdate={(id, d) => setRelationships(prev => prev.map(r => r.id === id ? { ...r, ...d } : r))} onDelete={(id) => setRelationships(prev => prev.filter(r => r.id !== id))} canvasRef={canvasRef} />);
+                return (<RelationshipLine key={rel.id} from={from} to={to} rel={rel} entities={entities} relationships={relationships} cardHeights={cardHeights} isExporting={isExporting} onUpdate={(id, d) => setRelationships(prev => prev.map(r => r.id === id ? { ...r, ...d } : r))} onDelete={(id) => setRelationships(prev => prev.filter(r => r.id !== id))} canvasRef={canvasRef} />);
               })}
             </svg>
           </div>

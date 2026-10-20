@@ -9,6 +9,7 @@ interface RelationshipLineProps {
   rel: Relationship;
   entities: Entity[];
   relationships: Relationship[];
+  cardHeights?: Record<string, number>;
   isExporting: boolean;
   onUpdate: (id: string, data: Partial<Relationship>) => void;
   onDelete: (id: string) => void;
@@ -16,7 +17,7 @@ interface RelationshipLineProps {
 }
 
 const RelationshipLine: React.FC<RelationshipLineProps> = ({
-  from, to, rel, entities, relationships, isExporting, onUpdate, onDelete, canvasRef
+  from, to, rel, entities, relationships, cardHeights = {}, isExporting, onUpdate, onDelete, canvasRef
 }) => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [showPopover, setShowPopover] = useState(false);
@@ -33,27 +34,22 @@ const RelationshipLine: React.FC<RelationshipLineProps> = ({
   const PADDING_V = 12;
   const ATTR_H = 27;
   const ATTR_GAP = 6;
-  const FORM_MT = 12;
-  const FORM_PT = 12;
-  const BORDER_T = 1;
-  const FORM_EL_H = 32;
   const CARD_BORDERS = BORDER_WIDTH * 2;
 
   const getCardHeight = (entity: Entity) => {
+    // Prioriza a altura real medida no DOM; a conta abaixo é apenas fallback
+    const measured = cardHeights[entity.id];
+    if (measured) return measured;
+
     if (entity.isCollapsed) return HEADER_H + CARD_BORDERS;
 
     const N = entity.attributes.length;
     const listHeight = N > 0 ? (ATTR_H * N + ATTR_GAP * (N - 1)) : 0;
     const attrAreaHeight = Math.max(40, listHeight);
 
-    let totalHeight = CARD_BORDERS + HEADER_H + PADDING_V + attrAreaHeight + PADDING_V;
-
-    if (!isExporting) {
-      const formHeight = FORM_MT + FORM_PT + BORDER_T + FORM_EL_H;
-      totalHeight += formHeight;
-    }
-
-    return totalHeight;
+    // O rodapé com input de novo atributo foi removido (agora é um botão flutuante),
+    // então a altura é a mesma em edição e na exportação.
+    return CARD_BORDERS + HEADER_H + PADDING_V + attrAreaHeight + PADDING_V;
   };
 
   const getFace = (source: Entity, target: Entity) => {
@@ -116,7 +112,7 @@ const RelationshipLine: React.FC<RelationshipLineProps> = ({
       offsetFrom: (indexFrom - (groupFrom.length - 1) / 2) * 20,
       offsetTo: (indexTo - (groupTo.length - 1) / 2) * 20
     };
-  }, [from, to, rel.id, entities, relationships, isSelf]);
+  }, [from, to, rel.id, entities, relationships, isSelf, cardHeights]);
 
   const { faceFrom, faceTo, offsetFrom, offsetTo } = connectionInfo;
   const h1 = getCardHeight(from);

@@ -17,6 +17,7 @@ interface EntityCardProps {
   canvasRef: React.RefObject<HTMLDivElement | null>;
   zoom?: number;
   useSnap?: boolean;
+  onHeightChange?: (height: number) => void;
 }
 
 const CATEGORIES: { id: AttributeCategory; label: string; icon: any; color: string; bgColor: string; borderColor: string; marker: string }[] = [
@@ -28,7 +29,7 @@ const CATEGORIES: { id: AttributeCategory; label: string; icon: any; color: stri
 ];
 
 const EntityCard: React.FC<EntityCardProps> = ({ 
-  entity, entities, isSelected, isLinking, isExporting, onClick, onDoubleClick, onUpdate, onDelete, onStartLink, canvasRef, zoom = 1, useSnap = true
+  entity, entities, isSelected, isLinking, isExporting, onClick, onDoubleClick, onUpdate, onDelete, onStartLink, canvasRef, zoom = 1, useSnap = true, onHeightChange
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [newAttrName, setNewAttrName] = useState('');
@@ -44,6 +45,20 @@ const EntityCard: React.FC<EntityCardProps> = ({
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   
   const menuRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const onHeightChangeRef = useRef(onHeightChange);
+  onHeightChangeRef.current = onHeightChange;
+
+  // Mede a altura real do card (sem escala do zoom) e informa ao pai para as linhas de conexão
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const report = () => onHeightChangeRef.current?.(el.offsetHeight);
+    report();
+    const observer = new ResizeObserver(report);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -218,6 +233,7 @@ const EntityCard: React.FC<EntityCardProps> = ({
 
   return (
     <div
+      ref={cardRef}
       className={`absolute w-64 bg-white rounded-xl shadow-lg border-2 transition-shadow overflow-visible cursor-default select-none entity-card-${entity.id} ${
         isSelected && !isExporting ? 'border-blue-500 ring-4 ring-blue-100 shadow-xl' : 'border-slate-200'
       } ${isLinking && !isExporting ? 'border-blue-500 animate-pulse' : ''}`}
@@ -420,11 +436,13 @@ const EntityCard: React.FC<EntityCardProps> = ({
           onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
           onClick={handleFloatingAddClick}
           title={isAddingAttr ? (newAttrName.trim() ? 'Confirmar atributo' : 'Fechar') : 'Adicionar atributo'}
-          className={`no-export absolute -bottom-3 -right-3 z-10 w-7 h-7 rounded-full flex items-center justify-center shadow-md border-2 border-white transition-all hover:scale-110 active:scale-95 ${
-            isAddingAttr ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'
+          className={`no-export absolute -bottom-2.5 -right-2.5 z-10 w-5 h-5 rounded-full flex items-center justify-center border shadow-sm transition-all active:scale-95 ${
+            isAddingAttr
+              ? 'bg-emerald-500 border-emerald-500 text-white hover:bg-emerald-600'
+              : `bg-white border-slate-200 hover:bg-blue-600 hover:border-blue-600 hover:text-white ${isSelected ? 'text-blue-500 opacity-100' : 'text-slate-400 opacity-70 hover:opacity-100'}`
           }`}
         >
-          <Plus className={`w-4 h-4 transition-transform ${isAddingAttr && !newAttrName.trim() ? 'rotate-45' : ''}`} />
+          <Plus className={`w-3 h-3 transition-transform ${isAddingAttr && !newAttrName.trim() ? 'rotate-45' : ''}`} strokeWidth={2.5} />
         </button>
       )}
     </div>
